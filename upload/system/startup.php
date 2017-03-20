@@ -3,8 +3,27 @@
 error_reporting(E_ALL);
 
 // Check Version
-if (version_compare(phpversion(), '5.4.0', '<') == true) {
-	exit('PHP5.4+ Required');
+if (version_compare(phpversion(), '5.3.0', '<') == true) {
+	exit('PHP5.3+ Required');
+}
+
+// Magic Quotes Fix
+if (ini_get('magic_quotes_gpc')) {
+	function clean($data) {
+   		if (is_array($data)) {
+  			foreach ($data as $key => $value) {
+    			$data[clean($key)] = clean($value);
+  			}
+		} else {
+  			$data = stripslashes($data);
+		}
+
+		return $data;
+	}
+
+	$_GET = clean($_GET);
+	$_POST = clean($_POST);
+	$_COOKIE = clean($_COOKIE);
 }
 
 if (!ini_get('date.timezone')) {
@@ -47,12 +66,10 @@ if ((isset($_SERVER['HTTPS']) && (($_SERVER['HTTPS'] == 'on') || ($_SERVER['HTTP
 
 // Modification Override
 function modification($filename) {
-	if (defined('DIR_CATALOG')) {
-		$file = DIR_MODIFICATION . 'admin/' .  substr($filename, strlen(DIR_APPLICATION));
-	} elseif (defined('DIR_OPENCART')) {
-		$file = DIR_MODIFICATION . 'install/' .  substr($filename, strlen(DIR_APPLICATION));
-	} else {
+	if (!defined('DIR_CATALOG')) {
 		$file = DIR_MODIFICATION . 'catalog/' . substr($filename, strlen(DIR_APPLICATION));
+	} else {
+		$file = DIR_MODIFICATION . 'admin/' .  substr($filename, strlen(DIR_APPLICATION));
 	}
 
 	if (substr($filename, 0, strlen(DIR_SYSTEM)) == DIR_SYSTEM) {
@@ -67,7 +84,7 @@ function modification($filename) {
 }
 
 // Autoloader
-if (is_file(DIR_SYSTEM . '../../vendor/autoload.php')) {
+if (file_exists(DIR_SYSTEM . '../../vendor/autoload.php')) {
 	require_once(DIR_SYSTEM . '../../vendor/autoload.php');
 }
 
@@ -100,7 +117,4 @@ require_once(modification(DIR_SYSTEM . 'engine/proxy.php'));
 require_once(DIR_SYSTEM . 'helper/general.php');
 require_once(DIR_SYSTEM . 'helper/utf8.php');
 require_once(DIR_SYSTEM . 'helper/json.php');
-
-function start($application_config) {
-	require_once(DIR_SYSTEM . 'framework.php');	
-}
+require_once(DIR_SYSTEM . 'helper/hash_equals.php');

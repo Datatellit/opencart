@@ -1,7 +1,7 @@
 <?php
 // Site
-$_['site_base']         = HTTP_SERVER;
-$_['site_ssl']          = HTTPS_SERVER;
+$_['site_base']         = substr(HTTP_SERVER, 7);
+$_['site_ssl']          = false;
 
 // Database
 $_['db_autostart']      = true;
@@ -16,7 +16,7 @@ $_['db_port']           = DB_PORT;
 $_['session_autostart'] = true;
 
 // Actions
-$_['action_pre_action'] = array(
+$_['action_pre_action']  = array(
 	'startup/startup',
 	'startup/error',
 	'startup/event',
@@ -26,9 +26,9 @@ $_['action_pre_action'] = array(
 );
 
 // Actions
-$_['action_default'] = 'common/dashboard';
+$_['action_default']     = 'common/dashboard';
 
 // Action Events
 $_['action_event'] = array(
-    'view/*/before' => 'event/theme'
+    'view/*/before' => 'event/theme',
 );

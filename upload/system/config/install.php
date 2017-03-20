@@ -1,10 +1,7 @@
 <?php
 // Site
-$_['site_base']         = HTTP_SERVER;
-$_['site_ssl']          = HTTP_SERVER;
-
-// Database
-$_['db_autostart']      = false;
+$_['site_base']         = substr(HTTP_SERVER, 7);
+$_['site_ssl']          = false;
 
 // Language
 $_['language_default']  = 'en-gb';

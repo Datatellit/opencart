@@ -1,10 +1,7 @@
 <?php
 // Site
-$_['site_base']        = HTTP_SERVER;
-$_['site_ssl']         = HTTPS_SERVER;
-
-// Url
-$_['url_autostart']    = false;
+$_['site_base']        = substr(HTTP_SERVER, 7);
+$_['site_ssl']         = false;
 
 // Database
 $_['db_autostart']     = true;
@@ -15,9 +12,6 @@ $_['db_password']      = DB_PASSWORD;
 $_['db_database']      = DB_DATABASE;
 $_['db_port']          = DB_PORT;
 
-// Session
-$_['session_autostart'] = false;
-
 // Autoload Libraries
 $_['library_autoload'] = array(
 	'openbay'
@@ -25,17 +19,17 @@ $_['library_autoload'] = array(
 
 // Actions
 $_['action_pre_action'] = array(
-	'startup/session',
 	'startup/startup',
 	'startup/error',
 	'startup/event',
 	'startup/maintenance',
-	'startup/seo_url'
+	'startup/seo_url',
+	'startup/session'
 );
 
 // Action Events
 $_['action_event'] = array(
-	'view/*/before'                         => 'event/theme',
-	//'controller/*/before'                 => 'event/debug/before',
-	//'controller/*/after'                  => 'event/debug/after'
+	'view/*/before' => 'event/theme',
+	//'model/*/before' => 'event/debug/before'
+	//'model/*/after' => 'event/debug/after'
 );

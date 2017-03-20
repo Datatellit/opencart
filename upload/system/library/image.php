@@ -8,10 +8,6 @@ class Image {
 	private $mime;
 
 	public function __construct($file) {
-		if (!extension_loaded('gd')) {
-			exit('Error: PHP GD is not installed!');
-		}
-		
 		if (file_exists($file)) {
 			$this->file = $file;
 
@@ -132,32 +128,12 @@ class Image {
 				$watermark_pos_x = 0;
 				$watermark_pos_y = 0;
 				break;
-			case 'topcenter':
-				$watermark_pos_x = intval(($this->width - $watermark->getWidth()) / 2);
-				$watermark_pos_y = 0;
-				break;
 			case 'topright':
 				$watermark_pos_x = $this->width - $watermark->getWidth();
 				$watermark_pos_y = 0;
 				break;
-			case 'middleleft':
-				$watermark_pos_x = 0;
-				$watermark_pos_y = intval(($this->height - $watermark->getHeight()) / 2);
-				break;
-			case 'middlecenter':
-				$watermark_pos_x = intval(($this->width - $watermark->getWidth()) / 2);
-				$watermark_pos_y = intval(($this->height - $watermark->getHeight()) / 2);
-				break;
-			case 'middleright':
-				$watermark_pos_x = $this->width - $watermark->getWidth();
-				$watermark_pos_y = intval(($this->height - $watermark->getHeight()) / 2);
-				break;
 			case 'bottomleft':
 				$watermark_pos_x = 0;
-				$watermark_pos_y = $this->height - $watermark->getHeight();
-				break;
-			case 'bottomcenter':
-				$watermark_pos_x = intval(($this->width - $watermark->getWidth()) / 2);
 				$watermark_pos_y = $this->height - $watermark->getHeight();
 				break;
 			case 'bottomright':
@@ -165,9 +141,7 @@ class Image {
 				$watermark_pos_y = $this->height - $watermark->getHeight();
 				break;
 		}
-		
-		imagealphablending( $this->image, true );
-		imagesavealpha( $this->image, true );
+
 		imagecopy($this->image, $watermark->getImage(), $watermark_pos_x, $watermark_pos_y, 0, 0, $watermark->getWidth(), $watermark->getHeight());
 
 		imagedestroy($watermark->getImage());

@@ -1,5 +1,7 @@
 <?php
 namespace Cart;
+use GuzzleHttp\Psr7\BufferStream;
+
 class Customer {
 	private $customer_id;
 	private $firstname;
@@ -12,7 +14,6 @@ class Customer {
 	private $address_id;
 
 	public function __construct($registry) {
-		$this->config = $registry->get('config');
 		$this->db = $registry->get('db');
 		$this->request = $registry->get('request');
 		$this->session = $registry->get('session');
@@ -31,7 +32,7 @@ class Customer {
 				$this->newsletter = $customer_query->row['newsletter'];
 				$this->address_id = $customer_query->row['address_id'];
 
-				$this->db->query("UPDATE " . DB_PREFIX . "customer SET language_id = '" . (int)$this->config->get('config_language_id') . "', ip = '" . $this->db->escape($this->request->server['REMOTE_ADDR']) . "' WHERE customer_id = '" . (int)$this->customer_id . "'");
+				$this->db->query("UPDATE " . DB_PREFIX . "customer SET ip = '" . $this->db->escape($this->request->server['REMOTE_ADDR']) . "' WHERE customer_id = '" . (int)$this->customer_id . "'");
 
 				$query = $this->db->query("SELECT * FROM " . DB_PREFIX . "customer_ip WHERE customer_id = '" . (int)$this->session->data['customer_id'] . "' AND ip = '" . $this->db->escape($this->request->server['REMOTE_ADDR']) . "'");
 
@@ -64,7 +65,32 @@ class Customer {
 			$this->newsletter = $customer_query->row['newsletter'];
 			$this->address_id = $customer_query->row['address_id'];
 
-			$this->db->query("UPDATE " . DB_PREFIX . "customer SET language_id = '" . (int)$this->config->get('config_language_id') . "', ip = '" . $this->db->escape($this->request->server['REMOTE_ADDR']) . "' WHERE customer_id = '" . (int)$this->customer_id . "'");
+			$this->db->query("UPDATE " . DB_PREFIX . "customer SET ip = '" . $this->db->escape($this->request->server['REMOTE_ADDR']) . "' WHERE customer_id = '" . (int)$this->customer_id . "'");
+
+			return true;
+		} else {
+			return false;
+		}
+	}
+
+	// 第三方登录
+	public function social_login($social_field, $social_id) {
+		$customer_query = $this->db->query("SELECT * FROM " . DB_PREFIX . "customer WHERE " . $social_field . " = '" . $social_id . "'");
+
+		if($customer_query->num_rows) {
+			$this->session->data['customer_id'] = $customer_query->row['customer_id'];
+
+			$this->customer_id = $customer_query->row['customer_id'];
+			$this->firstname = $customer_query->row['firstname'];
+			$this->lastname = $customer_query->row['lastname'];
+			$this->customer_group_id = $customer_query->row['customer_group_id'];
+			$this->email = $customer_query->row['email'];
+			$this->telephone = $customer_query->row['telephone'];
+			$this->fax = $customer_query->row['fax'];
+			$this->newsletter = $customer_query->row['newsletter'];
+			$this->address_id = $customer_query->row['address_id'];
+
+			$this->db->query("UPDATE " . DB_PREFIX . "customer SET ip='" . $this->db->escape($this->request->server["REMOTE_ADDR"]) . "' WHERE customer_id = '" . (int)$this->customer_id . "'");
 
 			return true;
 		} else {
@@ -136,5 +162,25 @@ class Customer {
 		$query = $this->db->query("SELECT SUM(points) AS total FROM " . DB_PREFIX . "customer_reward WHERE customer_id = '" . (int)$this->customer_id . "'");
 
 		return $query->row['total'];
+	}
+
+	// Kitchener or Waterloo
+	public function isKW() {
+		if(isset($this->session->data['guest'])) {
+			$address = $this->session->data['shipping_address'];
+			return !empty($address['city']) && (strtolower(trim($address['city'])) == "waterloo" || strtolower(trim($address['city'])) == "kitchener") && $address['country_id'] == 38 && $address['zone_id'] == 610;
+		} else {
+			$query = $this->db->query("SELECT * FROM oc_address WHERE address_id = (SELECT address_id FROM oc_customer WHERE customer_id = '" . (int)$this->customer_id . "')");
+
+			if ($query->num_rows) {
+				$city = $query->row['city'];
+				$country_id = $query->row['country_id'];
+				$zone_id = $query->row['zone_id'];
+
+				return !empty($city) && (strtolower(trim($city)) == "waterloo" || strtolower(trim($city)) == "kitchener") && $country_id == 38 && $zone_id == 610;
+			}
+
+			return false;
+		}
 	}
 }

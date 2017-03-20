@@ -3,9 +3,6 @@
 $_['site_base']            = '';
 $_['site_ssl']             = false;
 
-// Url
-$_['url_autostart']        = true;
-
 // Language
 $_['language_default']     = 'en-gb';
 $_['language_autoload']    = array('en-gb');
@@ -41,10 +38,10 @@ $_['session_autostart']    = true;
 $_['session_name']         = 'PHPSESSID';
 
 // Template
-$_['template_type']        = 'php';
+$_['template_type']        = 'basic';
 
 // Error
-$_['error_display']        = false;
+$_['error_display']        = true;
 $_['error_log']            = true;
 $_['error_filename']       = 'error.log';
 
