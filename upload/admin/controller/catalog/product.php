@@ -72,6 +72,7 @@ class ControllerCatalogProduct extends Controller {
 		$this->load->model('catalog/product');
 
 		if (($this->request->server['REQUEST_METHOD'] == 'POST') && $this->validateForm()) {
+			
 			$this->model_catalog_product->editProduct($this->request->get['product_id'], $this->request->post);
 
 			$this->session->data['success'] = $this->language->get('text_success');
@@ -255,12 +256,6 @@ class ControllerCatalogProduct extends Controller {
 			$filter_status = null;
 		}
 
-		if (isset($this->request->get['filter_image'])) {
-			$filter_image = $this->request->get['filter_image'];
-		} else {
-			$filter_image = null;
-		}
-
 		if (isset($this->request->get['sort'])) {
 			$sort = $this->request->get['sort'];
 		} else {
@@ -301,10 +296,6 @@ class ControllerCatalogProduct extends Controller {
 			$url .= '&filter_status=' . $this->request->get['filter_status'];
 		}
 
-		if (isset($this->request->get['filter_image'])) {
-			$url .= '&filter_image=' . $this->request->get['filter_image'];
-		}
-
 		if (isset($this->request->get['sort'])) {
 			$url .= '&sort=' . $this->request->get['sort'];
 		}
@@ -341,7 +332,6 @@ class ControllerCatalogProduct extends Controller {
 			'filter_price'	  => $filter_price,
 			'filter_quantity' => $filter_quantity,
 			'filter_status'   => $filter_status,
-			'filter_image'    => $filter_image,
 			'sort'            => $sort,
 			'order'           => $order,
 			'start'           => ($page - 1) * $this->config->get('config_limit_admin'),
@@ -372,6 +362,19 @@ class ControllerCatalogProduct extends Controller {
 					break;
 				}
 			}
+			$ccttype =0;
+			$shortdesc='';
+			$energy_price = 0;
+			$product_dtit = $this->model_catalog_product->getProductDtit($result['product_id']);
+			if(isset($product_dtit) && count($product_dtit) > 0) {
+				$ccttype = (int)$product_dtit["ccttype"];
+				$shortdesc = $product_dtit["shortdesc"];
+				$energy_price = $product_dtit["energy_price"];
+			}
+
+//			add by terrylu 2016.09.24 for dtit ext but anti-pattern start
+			//add get data here
+//			add by terrylu 2016.09.24 for dtit ext but anti-pattern end
 
 			$data['products'][] = array(
 				'product_id' => $result['product_id'],
@@ -381,7 +384,13 @@ class ControllerCatalogProduct extends Controller {
 				'price'      => $result['price'],
 				'special'    => $special,
 				'quantity'   => $result['quantity'],
-				'status'     => $result['status'] ? $this->language->get('text_enabled') : $this->language->get('text_disabled'),
+				'status'     => ($result['status']) ? $this->language->get('text_enabled') : $this->language->get('text_disabled'),
+//			add by terrylu 2016.09.24 for dtit ext but anti-pattern start
+			 //aet to data
+				'ccttype'      =>$ccttype,
+				 'shortdesc'  =>$shortdesc,
+				'energy'	=> $energy_price,
+//			add by terrylu 2016.09.24 for dtit ext but anti-pattern end
 				'edit'       => $this->url->link('catalog/product/edit', 'token=' . $this->session->data['token'] . '&product_id=' . $result['product_id'] . $url, true)
 			);
 		}
@@ -407,13 +416,21 @@ class ControllerCatalogProduct extends Controller {
 		$data['entry_price'] = $this->language->get('entry_price');
 		$data['entry_quantity'] = $this->language->get('entry_quantity');
 		$data['entry_status'] = $this->language->get('entry_status');
-		$data['entry_image'] = $this->language->get('entry_image');
 
 		$data['button_copy'] = $this->language->get('button_copy');
 		$data['button_add'] = $this->language->get('button_add');
 		$data['button_edit'] = $this->language->get('button_edit');
 		$data['button_delete'] = $this->language->get('button_delete');
 		$data['button_filter'] = $this->language->get('button_filter');
+
+//		add by terrylu 2016.09.24 for dtit ext start
+		$data['entry_ccttype'] = $this->language->get('entry_ccttype');
+		$data['entry_shortdesc'] = $this->language->get('entry_shortdesc');
+		$data['entry_energy_price'] = $this->language->get('entry_energy_price');
+		$data['text_ccttpyewarm'] = $this->language->get('text_ccttpyewarm');
+		$data['text_ccttypecold'] = $this->language->get('text_ccttypecold');
+		$data['text_ccttypecandle'] = $this->language->get('text_ccttypecandle');
+//		add by terrylu 2016.09.24 for dtit ext end
 
 		$data['token'] = $this->session->data['token'];
 
@@ -459,10 +476,6 @@ class ControllerCatalogProduct extends Controller {
 			$url .= '&filter_status=' . $this->request->get['filter_status'];
 		}
 
-		if (isset($this->request->get['filter_image'])) {
-			$url .= '&filter_image=' . $this->request->get['filter_image'];
-		}
-
 		if ($order == 'ASC') {
 			$url .= '&order=DESC';
 		} else {
@@ -502,10 +515,6 @@ class ControllerCatalogProduct extends Controller {
 			$url .= '&filter_status=' . $this->request->get['filter_status'];
 		}
 
-		if (isset($this->request->get['filter_image'])) {
-			$url .= '&filter_image=' . $this->request->get['filter_image'];
-		}
-
 		if (isset($this->request->get['sort'])) {
 			$url .= '&sort=' . $this->request->get['sort'];
 		}
@@ -529,7 +538,6 @@ class ControllerCatalogProduct extends Controller {
 		$data['filter_price'] = $filter_price;
 		$data['filter_quantity'] = $filter_quantity;
 		$data['filter_status'] = $filter_status;
-		$data['filter_image'] = $filter_image;
 
 		$data['sort'] = $sort;
 		$data['order'] = $order;
@@ -654,6 +662,16 @@ class ControllerCatalogProduct extends Controller {
 		$data['tab_reward'] = $this->language->get('tab_reward');
 		$data['tab_design'] = $this->language->get('tab_design');
 		$data['tab_openbay'] = $this->language->get('tab_openbay');
+
+//		add by terrylu 2016.09.24 for dtit ext  start
+		$data['tab_dtit'] = $this->language->get('tab_dtit');
+		$data['entry_ccttype'] = $this->language->get('entry_ccttype');
+		$data['entry_shortdesc'] = $this->language->get('entry_shortdesc');
+		$data['entry_energy_price'] = $this->language->get('entry_energy_price');
+		$data['text_ccttypewarm'] = $this->language->get('text_ccttypewarm');
+		$data['text_ccttypecold'] = $this->language->get('text_ccttypecold');
+		$data['text_ccttypecandle'] = $this->language->get('text_ccttypecandle');
+//		add by terrylu 2016.09.24 for dtit ext  end
 
 		if (isset($this->error['warning'])) {
 			$data['error_warning'] = $this->error['warning'];
@@ -1040,7 +1058,7 @@ class ControllerCatalogProduct extends Controller {
 			if ($category_info) {
 				$data['product_categories'][] = array(
 					'category_id' => $category_info['category_id'],
-					'name'        => ($category_info['path']) ? $category_info['path'] . ' &gt; ' . $category_info['name'] : $category_info['name']
+					'name' => ($category_info['path']) ? $category_info['path'] . ' &gt; ' . $category_info['name'] : $category_info['name']
 				);
 			}
 		}
@@ -1241,6 +1259,33 @@ class ControllerCatalogProduct extends Controller {
 			);
 		}
 
+		// Saving Images
+		if (isset($this->request->post['product_saving_image'])) {
+			$product_saving_images = $this->request->post['product_saving_image'];
+		} elseif (isset($this->request->get['product_id'])) {
+			$product_saving_images = $this->model_catalog_product->getProductSavingImages($this->request->get['product_id']);
+		} else {
+			$product_saving_images = array();
+		}
+
+		$data['product_saving_images'] = array();
+
+		foreach ($product_saving_images as $product_saving_image) {
+			if (is_file(DIR_IMAGE . $product_saving_image['image'])) {
+				$saving_image = $product_saving_image['image'];
+				$saving_image_thumb = $product_saving_image['image'];
+			} else {
+				$saving_image = '';
+				$saving_image_thumb = 'no_image.png';
+			}
+
+			$data['product_saving_images'][] = array(
+				'image'      => $saving_image,
+				'thumb'      => $this->model_tool_image->resize($saving_image_thumb, 100, 100),
+				'sort_order' => $product_saving_image['sort_order']
+			);
+		}
+
 		// Downloads
 		$this->load->model('catalog/download');
 
@@ -1309,6 +1354,27 @@ class ControllerCatalogProduct extends Controller {
 		} else {
 			$data['product_layout'] = array();
 		}
+
+//		add by terrylu 2016.09.24 for dtit ext but anti-pattern start
+		if (isset($this->request->post['product_dtit'])) {
+			$data['product_dtit'] = $this->request->post['product_dtit'];
+		} elseif (isset($this->request->get['product_id'])) {
+			$data['product_dtit'] = $this->model_catalog_product->getProductDtit($this->request->get['product_id']);
+		} else {
+			$data['product_dtit'] = array();
+		}
+	    if (!empty($data['product_dtit'])) {
+			$data['ccttype'] = $data['product_dtit']['ccttype'];
+			$data['shortdesc'] = $data['product_dtit']['shortdesc'];
+			$data['energy_price'] = $data['product_dtit']['energy_price'];
+		} else {
+			$data['ccttype'] = 0;
+			$data['shortdesc'] ='';
+			$data['energy_price'] = 0;
+		}
+
+
+//		add by terrylu 2016.09.24 for dtit ext but anti-pattern start
 
 		$this->load->model('design/layout');
 

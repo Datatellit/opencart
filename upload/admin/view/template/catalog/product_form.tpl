@@ -35,8 +35,12 @@
             <li><a href="#tab-discount" data-toggle="tab"><?php echo $tab_discount; ?></a></li>
             <li><a href="#tab-special" data-toggle="tab"><?php echo $tab_special; ?></a></li>
             <li><a href="#tab-image" data-toggle="tab"><?php echo $tab_image; ?></a></li>
+            <li><a href="#tab-saving" data-toggle="tab">Saving</a></li>
             <li><a href="#tab-reward" data-toggle="tab"><?php echo $tab_reward; ?></a></li>
             <li><a href="#tab-design" data-toggle="tab"><?php echo $tab_design; ?></a></li>
+            <!-- add by terrylu 2016.09.24 for dtit ext but anti-pattern start-->
+            <li><a href="#tab-dtit" data-toggle="tab"><?php echo $tab_dtit; ?></a></li>
+            <!-- add by terrylu 2016.09.24 for dtit ext but anti-pattern  end-->
           </ul>
           <div class="tab-content">
             <div class="tab-pane active" id="tab-general">
@@ -324,7 +328,7 @@
               <div class="form-group">
                 <label class="col-sm-2 control-label" for="input-manufacturer"><span data-toggle="tooltip" title="<?php echo $help_manufacturer; ?>"><?php echo $entry_manufacturer; ?></span></label>
                 <div class="col-sm-10">
-                  <input type="text" name="manufacturer" value="<?php echo $manufacturer; ?>" placeholder="<?php echo $entry_manufacturer; ?>" id="input-manufacturer" class="form-control" />
+                  <input type="text" name="manufacturer" value="<?php echo $manufacturer ?>" placeholder="<?php echo $entry_manufacturer; ?>" id="input-manufacturer" class="form-control" />
                   <input type="hidden" name="manufacturer_id" value="<?php echo $manufacturer_id; ?>" />
                 </div>
               </div>
@@ -812,7 +816,7 @@
                       <td class="text-left"><?php echo $entry_image; ?></td>
                     </tr>
                   </thead>
-                  
+
                   <tbody>
                     <tr>
                       <td class="text-left"><a href="" id="thumb-image" data-toggle="image" class="img-thumbnail"><img src="<?php echo $thumb; ?>" alt="" title="" data-placeholder="<?php echo $placeholder; ?>" /></a><input type="hidden" name="image" value="<?php echo $image; ?>" id="input-image" /></td>
@@ -845,6 +849,45 @@
                       <td colspan="2"></td>
                       <td class="text-left"><button type="button" onclick="addImage();" data-toggle="tooltip" title="<?php echo $button_image_add; ?>" class="btn btn-primary"><i class="fa fa-plus-circle"></i></button></td>
                     </tr>
+                  </tfoot>
+                </table>
+              </div>
+            </div>
+            <div class="tab-pane" id="tab-saving">
+              <div class="table-responsive">
+                <table id="saving" class="table table-striped table-bordered table-hover">
+                  <thead>
+                  <tr>
+                    <td class="text-left"><?php echo $entry_additional_image; ?></td>
+                    <td class="text-right"><?php echo $entry_sort_order; ?></td>
+                    <td></td>
+                  </tr>
+                  </thead>
+                  <tbody>
+                  <?php $saving_image_row = 0; ?>
+                  <?php foreach ($product_saving_images as $product_saving_image) { ?>
+                  <tr id="saving-image-row<?php echo $saving_image_row; ?>">
+                    <td class="text-left">
+                      <a href="" id="thumb-saving-image<?php echo $saving_image_row; ?>" data-toggle="image" class="img-thumbnail">
+                        <img src="<?php echo $product_saving_image['thumb']; ?>" alt="" title="" data-placeholder="<?php echo $placeholder; ?>" />
+                      </a>
+                      <input type="hidden" name="product_saving_image[<?php echo $saving_image_row; ?>][image]" value="<?php echo $product_saving_image['image']; ?>" id="input-saving-image<?php echo $saving_image_row; ?>" />
+                    </td>
+                    <td class="text-right">
+                      <input type="text" name="product_saving_image[<?php echo $saving_image_row; ?>][sort_order]" value="<?php echo $product_saving_image['sort_order']; ?>" placeholder="<?php echo $entry_sort_order; ?>" class="form-control" />
+                    </td>
+                    <td class="text-left">
+                      <button type="button" onclick="$('#saving-image-row<?php echo $saving_image_row; ?>').remove();" data-toggle="tooltip" title="<?php echo $button_remove; ?>" class="btn btn-danger"><i class="fa fa-minus-circle"></i></button>
+                    </td>
+                  </tr>
+                  <?php $saving_image_row++; ?>
+                  <?php } ?>
+                  </tbody>
+                  <tfoot>
+                  <tr>
+                    <td colspan="2"></td>
+                    <td class="text-left"><button type="button" onclick="addSavingImage();" data-toggle="tooltip" title="<?php echo $button_image_add; ?>" class="btn btn-primary"><i class="fa fa-plus-circle"></i></button></td>
+                  </tr>
                   </tfoot>
                 </table>
               </div>
@@ -917,14 +960,57 @@
                 </table>
               </div>
             </div>
+            <!-- add by terrylu 2016.09.24 for dtit ext but anti-pattern start-->
+            <div class="tab-pane" id="tab-dtit">
+              <div class="form-group">
+                <label class="col-sm-2 control-label"><?php echo $entry_ccttype; ?></label>
+                <div class="col-sm-10">
+                  <label class="radio-inline">
+                    <?php if ($ccttype==0) { ?>
+                    <input type="radio" name="ccttype" value="0" checked="checked" />
+                    <?php echo $text_ccttypewarm; ?>
+                    <?php } else { ?>
+                    <input type="radio" name="ccttype" value="0" />
+                    <?php echo $text_ccttypewarm; ?>
+                    <?php } ?>
+                  </label>
+                  <label class="radio-inline">
+                    <?php if ($ccttype==1) { ?>
+                    <input type="radio" name="ccttype" value="1" checked="checked" />
+                    <?php echo $text_ccttypecold; ?>
+                    <?php } else { ?>
+                    <input type="radio" name="ccttype" value="1" />
+                    <?php echo $text_ccttypecold; ?>
+                    <?php } ?>
+                  </label>
+                  <label class="radio-inline">
+                    <?php if ($ccttype==2) { ?>
+                    <input type="radio" name="ccttype" value="2" checked="checked" />
+                    <?php echo $text_ccttypecandle; ?>
+                    <?php } else { ?>
+                    <input type="radio" name="ccttype" value="2" />
+                    <?php echo $text_ccttypecandle; ?>
+                    <?php } ?>
+                  </label>
+                </div>
+                <label class="col-sm-2 control-label"><?php echo $entry_shortdesc; ?></label>
+                <div class="col-sm-10">
+                  <input type="text" name="shortdesc" value="<?php echo $shortdesc; ?>" placeholder="<?php echo $entry_shortdesc; ?>" id="input-shortdesc" class="form-control" />
+                </div>
+                <label class="col-sm-2 control-label"><?php echo $entry_energy_price; ?></label>
+                <div class="col-sm-10">
+                  <input type="text" name="energy_price" value="<?php echo $energy_price; ?>" placeholder="<?php echo $entry_energy_price; ?>" id="input-energy" class="form-control" />
+                </div>
+              </div>
+            </div>
+
+            </div>
+            <!-- add by terrylu 2016.09.24 for dtit ext but anti-pattern end-->
           </div>
         </form>
       </div>
     </div>
   </div>
-  <script type="text/javascript" src="view/javascript/summernote/summernote.js"></script>
-  <link href="view/javascript/summernote/summernote.css" rel="stylesheet" />
-  <script type="text/javascript" src="view/javascript/summernote/opencart.js"></script>
   <script type="text/javascript"><!--
 // Manufacturer
 $('input[name=\'manufacturer\']').autocomplete({
@@ -1233,7 +1319,7 @@ $('input[name=\'option\']').autocomplete({
 
 		$('#tab-option .tab-content').append(html);
 
-		$('#option > li:last-child').before('<li><a href="#tab-option' + option_row + '" data-toggle="tab"><i class="fa fa-minus-circle" onclick=" $(\'#option a:first\').tab(\'show\');$(\'a[href=\\\'#tab-option' + option_row + '\\\']\').parent().remove(); $(\'#tab-option' + option_row + '\').remove();"></i>' + item['label'] + '</li>');
+		$('#option > li:last-child').before('<li><a href="#tab-option' + option_row + '" data-toggle="tab"><i class="fa fa-minus-circle" onclick="$(\'a[href=\\\'#tab-option' + option_row + '\\\']\').parent().remove(); $(\'#tab-option' + option_row + '\').remove(); $(\'#option a:first\').tab(\'show\')"></i> ' + item['label'] + '</li>');
 
 		$('#option a[href=\'#tab-option' + option_row + '\']').tab('show');
 		
@@ -1291,7 +1377,7 @@ function addOptionValue(option_row) {
 	html += '</tr>';
 
 	$('#option-value' + option_row + ' tbody').append(html);
-	$('[rel=tooltip]').tooltip();
+        $('[rel=tooltip]').tooltip();
 
 	option_value_row++;
 }
@@ -1351,6 +1437,7 @@ function addSpecial() {
 //--></script>
   <script type="text/javascript"><!--
 var image_row = <?php echo $image_row; ?>;
+var saving_image_row = <?php echo $image_row; ?>;
 
 function addImage() {
 	html  = '<tr id="image-row' + image_row + '">';
@@ -1363,12 +1450,29 @@ function addImage() {
 
 	image_row++;
 }
+
+function addSavingImage() {
+  html  = '<tr id="saving-image-row' + saving_image_row + '">';
+  html += '  <td class="text-left">' +
+          '<a href="" id="thumb-saving-image' + saving_image_row + '"data-toggle="image" class="img-thumbnail"><img src="<?php echo $placeholder; ?>" alt="" title="" data-placeholder="<?php echo $placeholder; ?>" /></a>' +
+          '<input type="hidden" name="product_saving_image[' + saving_image_row + '][image]" value="" id="input-saving-image' + saving_image_row + '" /></td>';
+  html += '  <td class="text-right"><input type="text" name="product_saving_image[' + saving_image_row + '][sort_order]" value="" placeholder="<?php echo $entry_sort_order; ?>" class="form-control" /></td>';
+  html += '  <td class="text-left"><button type="button" onclick="$(\'#saving-image-row' + saving_image_row  + '\').remove();" data-toggle="tooltip" title="<?php echo $button_remove; ?>" class="btn btn-danger"><i class="fa fa-minus-circle"></i></button></td>';
+  html += '</tr>';
+
+  $('#saving tbody').append(html);
+
+  saving_image_row++;
+}
 //--></script>
   <script type="text/javascript"><!--
 var recurring_row = <?php echo $recurring_row; ?>;
 
 function addRecurring() {
-	html  = '<tr id="recurring-row' + recurring_row + '">';
+	recurring_row++;
+
+	html  = '';
+	html += '<tr id="recurring-row' + recurring_row + '">';
 	html += '  <td class="left">';
 	html += '    <select name="product_recurring[' + recurring_row + '][recurring_id]" class="form-control">>';
 	<?php foreach ($recurrings as $recurring) { ?>
@@ -1389,8 +1493,6 @@ function addRecurring() {
 	html += '</tr>';
 
 	$('#tab-recurring table tbody').append(html);
-	
-	recurring_row++;
 }
 //--></script>
   <script type="text/javascript"><!--

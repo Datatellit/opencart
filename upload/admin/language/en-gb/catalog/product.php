@@ -14,7 +14,9 @@ $_['text_option']            = 'Option';
 $_['text_option_value']      = 'Option Value';
 $_['text_percent']           = 'Percentage';
 $_['text_amount']            = 'Fixed Amount';
-
+$_['text_ccttypewarm']            = 'Warm';
+$_['text_ccttypecold']            = 'Cold';
+$_['text_ccttypecandle']            = 'Candle';
 // Column
 $_['column_name']            = 'Product Name';
 $_['column_model']           = 'Model';
@@ -27,8 +29,8 @@ $_['column_action']          = 'Action';
 // Entry
 $_['entry_name']             = 'Product Name';
 $_['entry_description']      = 'Description';
-$_['entry_meta_title']       = 'Meta Tag Title';
-$_['entry_meta_keyword']     = 'Meta Tag Keywords';
+$_['entry_meta_title'] 	     = 'Meta Tag Title';
+$_['entry_meta_keyword'] 	 = 'Meta Tag Keywords';
 $_['entry_meta_description'] = 'Meta Tag Description';
 $_['entry_keyword']          = 'SEO URL';
 $_['entry_model']            = 'Model';
@@ -76,10 +78,13 @@ $_['entry_category']         = 'Categories';
 $_['entry_filter']           = 'Filters';
 $_['entry_download']         = 'Downloads';
 $_['entry_related']          = 'Related Products';
-$_['entry_tag']              = 'Product Tags';
+$_['entry_tag']          	 = 'Product Tags';
 $_['entry_reward']           = 'Reward Points';
 $_['entry_layout']           = 'Layout Override';
 $_['entry_recurring']        = 'Recurring Profile';
+$_['entry_ccttype']         = 'CCT Type';
+$_['entry_shortdesc']         = 'Shortdesc';
+$_['entry_energy_price']     = 'Energy Conservation Amount';
 
 // Help
 $_['help_keyword']           = 'Do not use spaces, instead replace spaces with - and make sure the SEO URL is globally unique.';
@@ -97,7 +102,7 @@ $_['help_category']          = '(Autocomplete)';
 $_['help_filter']            = '(Autocomplete)';
 $_['help_download']          = '(Autocomplete)';
 $_['help_related']           = '(Autocomplete)';
-$_['help_tag']               = 'Comma separated';
+$_['help_tag']              = 'Comma separated';
 
 // Error
 $_['error_warning']          = 'Warning: Please check the form carefully for errors!';

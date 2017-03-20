@@ -114,7 +114,7 @@ class ControllerLocalisationLocation extends Controller {
 		if (isset($this->request->get['sort'])) {
 			$sort = $this->request->get['sort'];
 		} else {
-			$sort = 'name';
+			$sort = 'l.name';
 		}
 
 		if (isset($this->request->get['order'])) {

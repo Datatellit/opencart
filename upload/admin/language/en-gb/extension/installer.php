@@ -3,7 +3,6 @@
 $_['heading_title']        = 'Extension Installer';
 
 // Text
-$_['text_upload']          = 'Upload your extensions';
 $_['text_success']         = 'Success: The extension has been installed!';
 $_['text_unzip']           = 'Extracting files!';
 $_['text_ftp']             = 'Copying files!';
@@ -19,7 +18,7 @@ $_['entry_overwrite']      = 'Files that will be overwritten';
 $_['entry_progress']       = 'Progress';
 
 // Help
-$_['help_upload']          = 'Requires a modification file with extension \'.ocmod.zip\' or \'.ocmod.xml\'.';
+$_['help_upload']          = 'Requires a modification file with extension ".ocmod.zip" or ".ocmod.xml".';
 
 // Error
 $_['error_permission']     = 'Warning: You do not have permission to modify extensions!';

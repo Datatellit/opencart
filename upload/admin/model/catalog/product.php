@@ -69,6 +69,12 @@ class ModelCatalogProduct extends Model {
 				$this->db->query("INSERT INTO " . DB_PREFIX . "product_image SET product_id = '" . (int)$product_id . "', image = '" . $this->db->escape($product_image['image']) . "', sort_order = '" . (int)$product_image['sort_order'] . "'");
 			}
 		}
+		
+		if(isset($data['product_saving_image'])) {
+			foreach ($data['product_saving_image'] as $product_saving_image) {
+				$this->db->query("INSERT INTO " . DB_PREFIX . "product_saving_image SET product_id = '" . (int)$product_id . "', image = '" . $this->db->escape($product_saving_image['image']) . "', sort_order = '" . (int)$product_saving_image['sort_order'] . "'");
+			}
+		}
 
 		if (isset($data['product_download'])) {
 			foreach ($data['product_download'] as $download_id) {
@@ -111,15 +117,22 @@ class ModelCatalogProduct extends Model {
 			}
 		}
 
-		if ($data['keyword']) {
+		if (isset($data['keyword'])) {
 			$this->db->query("INSERT INTO " . DB_PREFIX . "url_alias SET query = 'product_id=" . (int)$product_id . "', keyword = '" . $this->db->escape($data['keyword']) . "'");
 		}
 
-		if (isset($data['product_recurring'])) {
-			foreach ($data['product_recurring'] as $recurring) {
+		if (isset($data['product_recurrings'])) {
+			foreach ($data['product_recurrings'] as $recurring) {
 				$this->db->query("INSERT INTO `" . DB_PREFIX . "product_recurring` SET `product_id` = " . (int)$product_id . ", customer_group_id = " . (int)$recurring['customer_group_id'] . ", `recurring_id` = " . (int)$recurring['recurring_id']);
 			}
 		}
+//		add by terrylu 2016.09.24 for dtit ext but anti-pattern start
+		//add insert model
+		if (isset($data['ccttype']) && isset($data['shortdesc'] )) {
+			print_r($data['energy_price']);
+			$this->db->query("INSERT INTO " . DB_PREFIX .  "product_dtit SET product_id = '" . (int)$product_id . "', ccttype = '" . (int) $data['ccttype']. "' ". ", shortdesc = '" . $this->db->escape($data['shortdesc']) . "', energy_price='" . $this->db->escape($data['energy_price']) . "',date_added = NOW(),date_modified = NOW() " );
+		}
+//		add by terrylu 2016.09.24 for dtit ext but anti-pattern end
 
 		$this->cache->delete('product');
 
@@ -207,6 +220,14 @@ class ModelCatalogProduct extends Model {
 			}
 		}
 
+		$this->db->query("DELETE FROM " . DB_PREFIX . "product_saving_image WHERE product_id = '" . (int)$product_id . "'");
+
+		if (isset($data['product_saving_image'])) {
+			foreach ($data['product_saving_image'] as $product_saving_image) {
+				$this->db->query("INSERT INTO " . DB_PREFIX . "product_saving_image SET product_id = '" . (int)$product_id . "', image = '" . $this->db->escape($product_saving_image['image']) . "', sort_order = '" . (int)$product_saving_image['sort_order'] . "'");
+			}
+		}
+
 		$this->db->query("DELETE FROM " . DB_PREFIX . "product_to_download WHERE product_id = '" . (int)$product_id . "'");
 
 		if (isset($data['product_download'])) {
@@ -275,7 +296,16 @@ class ModelCatalogProduct extends Model {
 			}
 		}
 
+//		add by terrylu 2016.09.24 for dtit ext but anti-pattern start
+		// update the model
+
+		$this->db->query("DELETE FROM " . DB_PREFIX . "product_dtit WHERE  product_id=" . (int)$product_id . "");
+		if (isset($data['ccttype'])&& isset($data['shortdesc'] )) {
+			$this->db->query("INSERT INTO " . DB_PREFIX .  "product_dtit SET product_id = '" . (int)$product_id . "', ccttype = '" . (int) $data['ccttype']. "' ". ", shortdesc = '" . $this->db->escape($data['shortdesc']) . "', energy_price='" . $this->db->escape($data['energy_price']) . "',date_added = NOW(),date_modified = NOW() " );
+		}
+//		add by terrylu 2016.09.24 for dtit ext but anti-pattern end
 		$this->cache->delete('product');
+
 	}
 
 	public function copyProduct($product_id) {
@@ -295,6 +325,7 @@ class ModelCatalogProduct extends Model {
 			$data['product_discount'] = $this->getProductDiscounts($product_id);
 			$data['product_filter'] = $this->getProductFilters($product_id);
 			$data['product_image'] = $this->getProductImages($product_id);
+			$data['product_image'] = $this->getProductSavingImages($product_id);
 			$data['product_option'] = $this->getProductOptions($product_id);
 			$data['product_related'] = $this->getProductRelated($product_id);
 			$data['product_reward'] = $this->getProductRewards($product_id);
@@ -304,7 +335,9 @@ class ModelCatalogProduct extends Model {
 			$data['product_layout'] = $this->getProductLayouts($product_id);
 			$data['product_store'] = $this->getProductStores($product_id);
 			$data['product_recurrings'] = $this->getRecurrings($product_id);
-
+//			add by terrylu 2016.09.24 for dtit ext but anti-pattern start
+			$data['product_dtit'] = $this->getProductDtit($product_id);
+//			add by terrylu 2016.09.24 for dtit ext but anti-pattern end
 			$this->addProduct($data);
 		}
 	}
@@ -316,6 +349,7 @@ class ModelCatalogProduct extends Model {
 		$this->db->query("DELETE FROM " . DB_PREFIX . "product_discount WHERE product_id = '" . (int)$product_id . "'");
 		$this->db->query("DELETE FROM " . DB_PREFIX . "product_filter WHERE product_id = '" . (int)$product_id . "'");
 		$this->db->query("DELETE FROM " . DB_PREFIX . "product_image WHERE product_id = '" . (int)$product_id . "'");
+		$this->db->query("DELETE FROM " . DB_PREFIX . "product_saving_image WHERE product_id = '" . (int)$product_id . "'");
 		$this->db->query("DELETE FROM " . DB_PREFIX . "product_option WHERE product_id = '" . (int)$product_id . "'");
 		$this->db->query("DELETE FROM " . DB_PREFIX . "product_option_value WHERE product_id = '" . (int)$product_id . "'");
 		$this->db->query("DELETE FROM " . DB_PREFIX . "product_related WHERE product_id = '" . (int)$product_id . "'");
@@ -330,7 +364,9 @@ class ModelCatalogProduct extends Model {
 		$this->db->query("DELETE FROM " . DB_PREFIX . "review WHERE product_id = '" . (int)$product_id . "'");
 		$this->db->query("DELETE FROM " . DB_PREFIX . "url_alias WHERE query = 'product_id=" . (int)$product_id . "'");
 		$this->db->query("DELETE FROM " . DB_PREFIX . "coupon_product WHERE product_id = '" . (int)$product_id . "'");
-
+//			add by terrylu 2016.09.24 for dtit ext but anti-pattern start
+		$this->db->query("DELETE FROM " . DB_PREFIX . "product_dtit WHERE product_id = '" . (int)$product_id . "'");
+//			add by terrylu 2016.09.24 for dtit ext but anti-pattern end
 		$this->cache->delete('product');
 	}
 
@@ -361,14 +397,6 @@ class ModelCatalogProduct extends Model {
 
 		if (isset($data['filter_status']) && !is_null($data['filter_status'])) {
 			$sql .= " AND p.status = '" . (int)$data['filter_status'] . "'";
-		}
-
-		if (isset($data['filter_image']) && !is_null($data['filter_image'])) {
-			if ($data['filter_image'] == 1) {
-				$sql .= " AND (p.image IS NOT NULL AND p.image <> '' AND p.image <> 'no_image.png')";
-			} else {
-				$sql .= " AND (p.image IS NULL OR p.image = '' OR p.image = 'no_image.png')";
-			}
 		}
 
 		$sql .= " GROUP BY p.product_id";
@@ -491,7 +519,7 @@ class ModelCatalogProduct extends Model {
 		foreach ($product_option_query->rows as $product_option) {
 			$product_option_value_data = array();
 
-			$product_option_value_query = $this->db->query("SELECT * FROM " . DB_PREFIX . "product_option_value pov LEFT JOIN " . DB_PREFIX . "option_value ov ON(pov.option_value_id = ov.option_value_id) WHERE pov.product_option_id = '" . (int)$product_option['product_option_id'] . "' ORDER BY ov.sort_order ASC");
+			$product_option_value_query = $this->db->query("SELECT * FROM " . DB_PREFIX . "product_option_value WHERE product_option_id = '" . (int)$product_option['product_option_id'] . "'");
 
 			foreach ($product_option_value_query->rows as $product_option_value) {
 				$product_option_value_data[] = array(
@@ -530,6 +558,12 @@ class ModelCatalogProduct extends Model {
 
 	public function getProductImages($product_id) {
 		$query = $this->db->query("SELECT * FROM " . DB_PREFIX . "product_image WHERE product_id = '" . (int)$product_id . "' ORDER BY sort_order ASC");
+
+		return $query->rows;
+	}
+
+	public function getProductSavingImages($product_id) {
+		$query = $this->db->query("SELECT * FROM " . DB_PREFIX . "product_saving_image WHERE product_id = '" . (int)$product_id . "' ORDER BY sort_order ASC");
 
 		return $query->rows;
 	}
@@ -637,14 +671,6 @@ class ModelCatalogProduct extends Model {
 			$sql .= " AND p.status = '" . (int)$data['filter_status'] . "'";
 		}
 
-		if (isset($data['filter_image']) && !is_null($data['filter_image'])) {
-			if ($data['filter_image'] == 1) {
-				$sql .= " AND (p.image IS NOT NULL AND p.image <> '' AND p.image <> 'no_image.png')";
-			} else {
-				$sql .= " AND (p.image IS NULL OR p.image = '' OR p.image = 'no_image.png')";
-			}
-		}
-
 		$query = $this->db->query($sql);
 
 		return $query->row['total'];
@@ -709,4 +735,13 @@ class ModelCatalogProduct extends Model {
 
 		return $query->row['total'];
 	}
+
+//add by terrylu 2016.09.24 for dtit ext but anti-pattern start
+// add get function
+	public function getProductDtit($product_id) {
+		$query = $this->db->query("SELECT * FROM " . DB_PREFIX . "product_dtit WHERE  product_id='" . (int)$product_id . "'") ;
+ 		return $query->row;
+	}
+// add by terrylu 2016.09.2
+
 }

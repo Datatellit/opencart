@@ -253,9 +253,7 @@ class ControllerLocalisationLanguage extends Controller {
 		$data['results'] = sprintf($this->language->get('text_pagination'), ($language_total) ? (($page - 1) * $this->config->get('config_limit_admin')) + 1 : 0, ((($page - 1) * $this->config->get('config_limit_admin')) > ($language_total - $this->config->get('config_limit_admin'))) ? $language_total : ((($page - 1) * $this->config->get('config_limit_admin')) + $this->config->get('config_limit_admin')), $language_total, ceil($language_total / $this->config->get('config_limit_admin')));
 
 		$data['sort'] = $sort;
-		$data['order'] = $order;
-		
-		$data['header'] = $this->load->controller('common/header');
+		$data['order'] = $order;		$data['header'] = $this->load->controller('common/header');
 		$data['column_left'] = $this->load->controller('common/column_left');
 		$data['footer'] = $this->load->controller('common/footer');
 
@@ -271,11 +269,9 @@ class ControllerLocalisationLanguage extends Controller {
 
 		$data['entry_name'] = $this->language->get('entry_name');
 		$data['entry_code'] = $this->language->get('entry_code');
-		$data['entry_locale'] = $this->language->get('entry_locale');
 		$data['entry_sort_order'] = $this->language->get('entry_sort_order');
 		$data['entry_status'] = $this->language->get('entry_status');
 
-		$data['help_locale'] = $this->language->get('help_locale');
 		$data['help_status'] = $this->language->get('help_status');
 
 		$data['button_save'] = $this->language->get('button_save');
@@ -298,13 +294,7 @@ class ControllerLocalisationLanguage extends Controller {
 		} else {
 			$data['error_code'] = '';
 		}
-		
-		if (isset($this->error['locale'])) {
-			$data['error_locale'] = $this->error['locale'];
-		} else {
-			$data['error_locale'] = '';
-		}
-		
+
 		$url = '';
 
 		if (isset($this->request->get['sort'])) {
@@ -367,14 +357,6 @@ class ControllerLocalisationLanguage extends Controller {
 			$data['languages'][] = basename($folder);
 		}
 
-		if (isset($this->request->post['locale'])) {
-			$data['locale'] = $this->request->post['locale'];
-		} elseif (!empty($language_info)) {
-			$data['locale'] = $language_info['locale'];
-		} else {
-			$data['locale'] = '';
-		}
-		
 		if (isset($this->request->post['sort_order'])) {
 			$data['sort_order'] = $this->request->post['sort_order'];
 		} elseif (!empty($language_info)) {
@@ -410,11 +392,7 @@ class ControllerLocalisationLanguage extends Controller {
 		if (utf8_strlen($this->request->post['code']) < 2) {
 			$this->error['code'] = $this->language->get('error_code');
 		}
-		
-		if (!$this->request->post['locale']) {
-			$this->error['locale'] = $this->language->get('error_locale');
-		}
-		
+
 		$language_info = $this->model_localisation_language->getLanguageByCode($this->request->post['code']);
 
 		if (!isset($this->request->get['language_id'])) {

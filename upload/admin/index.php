@@ -1,6 +1,6 @@
 <?php
 // Version
-define('VERSION', '2.3.0.3_rc');
+define('VERSION', '2.2.0.0');
 
 // Configuration
 if (is_file('config.php')) {
@@ -16,4 +16,7 @@ if (!defined('DIR_APPLICATION')) {
 // Startup
 require_once(DIR_SYSTEM . 'startup.php');
 
-start('admin');
+$application_config = 'admin';
+
+// Application
+require_once(DIR_SYSTEM . 'framework.php');
