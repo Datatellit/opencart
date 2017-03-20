@@ -3,6 +3,12 @@ class ControllerProductProduct extends Controller {
 	private $error = array();
 
 	public function index() {
+		if (preg_match('/Mobile|Android|BlackBerry|iPhone|Windows Phone/', $this->request->server['HTTP_USER_AGENT'])) {
+			$data['mobile'] = true;
+		} else {
+			$data['mobile'] = false;
+		}
+
 		$this->load->language('product/product');
 
 		$data['breadcrumbs'] = array();
@@ -211,13 +217,13 @@ class ControllerProductProduct extends Controller {
 
 			$data['breadcrumbs'][] = array(
 				'text' => $product_info['name'],
-				'href' => $this->url->link('product/product', $url . '&product_id=' . $product_id)
+				'href' => $this->url->link('product/product', $url . '&product_id=' . $this->request->get['product_id'])
 			);
 
 			$this->document->setTitle($product_info['meta_title']);
 			$this->document->setDescription($product_info['meta_description']);
 			$this->document->setKeywords($product_info['meta_keyword']);
-			$this->document->addLink($this->url->link('product/product', 'product_id=' . $product_id), 'canonical');
+			$this->document->addLink($this->url->link('product/product', 'product_id=' . $this->request->get['product_id']), 'canonical');
 			$this->document->addScript('catalog/view/javascript/jquery/magnific/jquery.magnific-popup.min.js');
 			$this->document->addStyle('catalog/view/javascript/jquery/magnific/magnific-popup.css');
 			$this->document->addScript('catalog/view/javascript/jquery/datetimepicker/moment.js');
@@ -243,6 +249,8 @@ class ControllerProductProduct extends Controller {
 			$data['text_related'] = $this->language->get('text_related');
 			$data['text_payment_recurring'] = $this->language->get('text_payment_recurring');
 			$data['text_loading'] = $this->language->get('text_loading');
+			$data['text_view_chart'] = $this->language->get('text_view_chart');
+			$data['text_energy_conservation'] = $this->language->get('text_energy_conservation');
 
 			$data['entry_qty'] = $this->language->get('entry_qty');
 			$data['entry_name'] = $this->language->get('entry_name');
@@ -263,7 +271,9 @@ class ControllerProductProduct extends Controller {
 			$data['tab_attribute'] = $this->language->get('tab_attribute');
 			$data['tab_review'] = sprintf($this->language->get('tab_review'), $product_info['reviews']);
 
-			$data['product_id'] = (int)$product_id;
+			$data['button_viewdetail'] = $this->language->get('button_viewdetail');
+
+			$data['product_id'] = (int)$this->request->get['product_id'];
 			$data['manufacturer'] = $product_info['manufacturer'];
 			$data['manufacturers'] = $this->url->link('product/manufacturer/info', 'manufacturer_id=' . $product_info['manufacturer_id']);
 			$data['model'] = $product_info['model'];
@@ -293,28 +303,84 @@ class ControllerProductProduct extends Controller {
 				$data['thumb'] = '';
 			}
 
+			//add by terry 2016.10.05 start
+			$data['ccttype'] = $product_info['ccttype'];
+			//add by terry 2016.10.05 end
+
+			if(isset($product_info['energy_price'])) {
+				$energy_price = $product_info['energy_price'];
+			} else {
+				$energy_price = 0;
+			}
+
+			$data['energy_price'] = $energy_price;
+
+			if(!isset($this->request->get['energy']) || $this->request->get['energy'] == "true") {
+				$data['energy'] = true;
+				$this->session->data['energy_price'] = 1;
+			} else {
+				$data['energy'] = false;
+				$this->session->data['energy_price'] = 0;
+			}
+
+
 			$data['images'] = array();
 
-			$results = $this->model_catalog_product->getProductImages($product_id);
+			$results = $this->model_catalog_product->getProductImages($this->request->get['product_id']);
 
 			foreach ($results as $result) {
+
 				$data['images'][] = array(
 					'popup' => $this->model_tool_image->resize($result['image'], $this->config->get($this->config->get('config_theme') . '_image_popup_width'), $this->config->get($this->config->get('config_theme') . '_image_popup_height')),
 					'thumb' => $this->model_tool_image->resize($result['image'], $this->config->get($this->config->get('config_theme') . '_image_additional_width'), $this->config->get($this->config->get('config_theme') . '_image_additional_height'))
+				//	,'large' =>'http://'
 				);
+//				//add by terry 2016.09.25 start
+//				//todo temp handthe the path ,resize need???
+				$popimage =$data['images'][count($data['images'])-1]['popup'] ;
+				$folder= substr( $popimage ,0, strrpos($popimage , '/')+1 );
+				$filename= substr( $popimage , strrpos($popimage , '/')+1 );
+				$newfolder= str_replace('/cache','',$folder);
+				$filenamearray= explode('-',$filename);
+				$imagelarge =$filenamearray[0].'.jpg';
+				$data['images'][count(	$data['images'])-1]['large'] =$newfolder.$imagelarge;
+				//var_dump($data['images'][count(	$data['images'])-1]['large'] );
+//				//add by terry 2016.09.25 end
 			}
 
 			if ($this->customer->isLogged() || !$this->config->get('config_customer_price')) {
-				$data['price'] = $this->currency->format($this->tax->calculate($product_info['price'], $product_info['tax_class_id'], $this->config->get('config_tax')), $this->session->data['currency']);
+//				$per_price = $this->currency->format($product_info['price']/6, $this->session->data['currency']);
+				if($data['energy']){
+					$data['price'] = $this->currency->format($product_info['price'] - $energy_price, $this->session->data['currency']);
+					$per_price = ($product_info['price'] - $energy_price) / 6;
+				} else {
+					$data['price'] = $this->currency->format($product_info['price'], $this->session->data['currency']);
+					$per_price = $product_info['price']/6;
+				}
+
+				$data['text_per_bulb'] = sprintf($this->language->get('text_per_bulb'), round($per_price, 2));
 			} else {
 				$data['price'] = false;
 			}
 
 			if ((float)$product_info['special']) {
-				$data['special'] = $this->currency->format($this->tax->calculate($product_info['special'], $product_info['tax_class_id'], $this->config->get('config_tax')), $this->session->data['currency']);
+				//$data['special'] = $this->currency->format($this->tax->calculate($product_info['special'], $product_info['tax_class_id'], $this->config->get('config_tax')), $this->session->data['currency']);
+
+				if($data['energy']){
+					$data['special'] = $this->currency->format($product_info['special'] - $energy_price, $this->session->data['currency']);
+					$per_price = ($product_info['special'] - $energy_price) / 6;
+				} else {
+					$data['special'] = $this->currency->format($product_info['special'], $this->session->data['currency']);
+					$per_price = $product_info['special'] / 6;
+				}
+
+				$data['text_per_bulb'] = sprintf($this->language->get('text_per_bulb'), round($per_price, 2));
+
 			} else {
 				$data['special'] = false;
 			}
+
+			$data['action'] = $this->url->link('product/product', 'product_id=' . $product_id);
 
 			if ($this->config->get('config_tax')) {
 				$data['tax'] = $this->currency->format((float)$product_info['special'] ? $product_info['special'] : $product_info['price'], $this->session->data['currency']);
@@ -322,20 +388,21 @@ class ControllerProductProduct extends Controller {
 				$data['tax'] = false;
 			}
 
-			$discounts = $this->model_catalog_product->getProductDiscounts($product_id);
+			$discounts = $this->model_catalog_product->getProductDiscounts($this->request->get['product_id']);
 
 			$data['discounts'] = array();
 
 			foreach ($discounts as $discount) {
 				$data['discounts'][] = array(
 					'quantity' => $discount['quantity'],
-					'price'    => $this->currency->format($this->tax->calculate($discount['price'], $product_info['tax_class_id'], $this->config->get('config_tax')), $this->session->data['currency'])
+					'price'    => $this->currency->format($discount['price'], $this->session->data['currency'])
+					//$this->currency->format($this->tax->calculate($discount['price'], $product_info['tax_class_id'], $this->config->get('config_tax')), $this->session->data['currency'])
 				);
 			}
 
 			$data['options'] = array();
 
-			foreach ($this->model_catalog_product->getProductOptions($product_id) as $option) {
+			foreach ($this->model_catalog_product->getProductOptions($this->request->get['product_id']) as $option) {
 				$product_option_value_data = array();
 
 				foreach ($option['product_option_value'] as $option_value) {
@@ -393,18 +460,18 @@ class ControllerProductProduct extends Controller {
 
 			// Captcha
 			if ($this->config->get($this->config->get('config_captcha') . '_status') && in_array('review', (array)$this->config->get('config_captcha_page'))) {
-				$data['captcha'] = $this->load->controller('extension/captcha/' . $this->config->get('config_captcha'));
+				$data['captcha'] = $this->load->controller('captcha/' . $this->config->get('config_captcha'));
 			} else {
 				$data['captcha'] = '';
 			}
 
-			$data['share'] = $this->url->link('product/product', 'product_id=' . (int)$product_id);
+			$data['share'] = $this->url->link('product/product', 'product_id=' . (int)$this->request->get['product_id']);
 
-			$data['attribute_groups'] = $this->model_catalog_product->getProductAttributes($product_id);
+			$data['attribute_groups'] = $this->model_catalog_product->getProductAttributes($this->request->get['product_id']);
 
 			$data['products'] = array();
 
-			$results = $this->model_catalog_product->getProductRelated($product_id);
+			$results = $this->model_catalog_product->getProductRelated($this->request->get['product_id']);
 
 			foreach ($results as $result) {
 				if ($result['image']) {
@@ -437,6 +504,7 @@ class ControllerProductProduct extends Controller {
 					$rating = false;
 				}
 
+
 				$data['products'][] = array(
 					'product_id'  => $result['product_id'],
 					'thumb'       => $image,
@@ -464,9 +532,11 @@ class ControllerProductProduct extends Controller {
 				}
 			}
 
-			$data['recurrings'] = $this->model_catalog_product->getProfiles($product_id);
 
-			$this->model_catalog_product->updateViewed($product_id);
+
+			$data['recurrings'] = $this->model_catalog_product->getProfiles($this->request->get['product_id']);
+
+			$this->model_catalog_product->updateViewed($this->request->get['product_id']);
 
 			$data['column_left'] = $this->load->controller('common/column_left');
 			$data['column_right'] = $this->load->controller('common/column_right');
@@ -563,7 +633,7 @@ class ControllerProductProduct extends Controller {
 		$data['text_no_reviews'] = $this->language->get('text_no_reviews');
 
 		if (isset($this->request->get['page'])) {
-			$page = (int)$this->request->get['page'];
+			$page = $this->request->get['page'];
 		} else {
 			$page = 1;
 		}
@@ -606,7 +676,7 @@ class ControllerProductProduct extends Controller {
 				$json['error'] = $this->language->get('error_name');
 			}
 
-			if ((utf8_strlen($this->request->post['text']) < 25) || (utf8_strlen($this->request->post['text']) > 1000)) {
+			if ((utf8_strlen($this->request->post['text']) < 10) || (utf8_strlen($this->request->post['text']) > 1000)) {
 				$json['error'] = $this->language->get('error_text');
 			}
 
@@ -616,7 +686,7 @@ class ControllerProductProduct extends Controller {
 
 			// Captcha
 			if ($this->config->get($this->config->get('config_captcha') . '_status') && in_array('review', (array)$this->config->get('config_captcha_page'))) {
-				$captcha = $this->load->controller('extension/captcha/' . $this->config->get('config_captcha') . '/validate');
+				$captcha = $this->load->controller('captcha/' . $this->config->get('config_captcha') . '/validate');
 
 				if ($captcha) {
 					$json['error'] = $captcha;

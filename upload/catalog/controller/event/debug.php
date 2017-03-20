@@ -1,21 +1,14 @@
 <?php
 class ControllerEventDebug extends Controller {
 	public function before(&$route, &$data) {
-		if ($route == '') { // add the route you want to test
-			$this->session->data['debug'][$route] = microtime();
+		if ($route == '') {
+			$this->log->write(func_get_args());
 		}
 	}
 	
 	public function after(&$route, &$data, &$output) {
-		if ($route == '') { // add the route you want to test
-			if (isset($this->session->data['debug'][$route])) {
-				$data = array(
-					'route' => $route,
-					'time'  => microtime() - $this->session->data['debug'][$route]
-				);
-				
-				$this->log->write($data);
-			}
+		if ($route == '') {
+			$this->log->write(func_get_args());
 		}
 	}	
 }

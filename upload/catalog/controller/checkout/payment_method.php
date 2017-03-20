@@ -30,16 +30,16 @@ class ControllerCheckoutPaymentMethod extends Controller {
 
 			foreach ($results as $result) {
 				if ($this->config->get($result['code'] . '_status')) {
-					$this->load->model('extension/total/' . $result['code']);
+					$this->load->model('total/' . $result['code']);
 					
 					// We have to put the totals in an array so that they pass by reference.
-					$this->{'model_extension_total_' . $result['code']}->getTotal($total_data);
+					$this->{'model_total_' . $result['code']}->getTotal($total_data);
 				}
 			}
 
 			// Payment Methods
-			$method_data = array();
-
+			$method_data = array("pay_online" => array("code" => "pay_online","title" => "Pay Online"));
+			/*$method_data = array();
 			$this->load->model('extension/extension');
 
 			$results = $this->model_extension_extension->getExtensions('payment');
@@ -48,13 +48,13 @@ class ControllerCheckoutPaymentMethod extends Controller {
 
 			foreach ($results as $result) {
 				if ($this->config->get($result['code'] . '_status')) {
-					$this->load->model('extension/payment/' . $result['code']);
+					$this->load->model('payment/' . $result['code']);
 
-					$method = $this->{'model_extension_payment_' . $result['code']}->getMethod($this->session->data['payment_address'], $total);
+					$method = $this->{'model_payment_' . $result['code']}->getMethod($this->session->data['payment_address'], $total);
 
 					if ($method) {
 						if ($recurring) {
-							if (property_exists($this->{'model_extension_payment_' . $result['code']}, 'recurringPayments') && $this->{'model_extension_payment_' . $result['code']}->recurringPayments()) {
+							if (property_exists($this->{'model_payment_' . $result['code']}, 'recurringPayments') && $this->{'model_payment_' . $result['code']}->recurringPayments()) {
 								$method_data[$result['code']] = $method;
 							}
 						} else {
@@ -70,7 +70,7 @@ class ControllerCheckoutPaymentMethod extends Controller {
 				$sort_order[$key] = $value['sort_order'];
 			}
 
-			array_multisort($sort_order, SORT_ASC, $method_data);
+			array_multisort($sort_order, SORT_ASC, $method_data);*/
 
 			$this->session->data['payment_methods'] = $method_data;
 		}
@@ -125,6 +125,30 @@ class ControllerCheckoutPaymentMethod extends Controller {
 			$data['agree'] = $this->session->data['agree'];
 		} else {
 			$data['agree'] = '';
+		}
+
+		// Coupon
+		$this->load->language('checkout/cart');
+		//$this->document->setTitle($this->language->get('heading_title'));
+		$data['text_next'] = $this->language->get('text_next');
+		$data['text_next_choice'] = $this->language->get('text_next_choice');
+
+		$this->load->model('extension/extension');
+
+		$data['modules'] = array();
+		$data['module_names'] = array();
+		$files = glob(DIR_APPLICATION . '/controller/total/*.php');
+		if($files) {
+			foreach ($files as $file)
+			{
+				$result = $this->load->controller('total/' . basename($file, '.php'));
+
+				if($result)
+				{
+					$data['modules'][] = $result;
+					$data['module_names'][] = basename($file,'.php');
+				}
+			}
 		}
 
 		$this->response->setOutput($this->load->view('checkout/payment_method', $data));

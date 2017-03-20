@@ -13,9 +13,9 @@
     <input type="radio" name="payment_method" value="<?php echo $payment_method['code']; ?>" />
     <?php } ?>
     <?php echo $payment_method['title']; ?>
-    <?php if ($payment_method['terms']) { ?>
+    <!--<?php if ($payment_method['terms']) { ?>
     (<?php echo $payment_method['terms']; ?>)
-    <?php } ?>
+    <?php } ?>-->
   </label>
 </div>
 <?php } ?>
@@ -43,3 +43,10 @@
   </div>
 </div>
 <?php } ?>
+<script>
+  $(function () {
+    $('ul.nav-tabs > li:first').addClass('active');
+    $('.tab-content > [class="tab-pane"]').removeClass('active');
+    $('.tab-content > [class="tab-pane"]:first').addClass('active');
+  })
+</script>

@@ -42,7 +42,18 @@
               <?php } ?>
             </div>
           </div>
+
           <div class="form-group required">
+                <label class="col-sm-2 control-label" for="input-email"><?php echo $entry_email; ?></label>
+                <div class="col-sm-10">
+                    <input type="email" name="email" value="<?php echo $email; ?>" placeholder="<?php echo $entry_email; ?>" id="input-email" class="form-control" />
+                    <div></div>
+                    <?php if($error_email) { ?>
+                    <div class="text-danger"><?php echo $error_email; ?></div>
+                    <?php } ?>
+                </div>
+            </div>
+          <div class="form-group">
             <label class="col-sm-2 control-label" for="input-firstname"><?php echo $entry_firstname; ?></label>
             <div class="col-sm-10">
               <input type="text" name="firstname" value="<?php echo $firstname; ?>" placeholder="<?php echo $entry_firstname; ?>" id="input-firstname" class="form-control" />
@@ -51,7 +62,7 @@
               <?php } ?>
             </div>
           </div>
-          <div class="form-group required">
+          <div class="form-group">
             <label class="col-sm-2 control-label" for="input-lastname"><?php echo $entry_lastname; ?></label>
             <div class="col-sm-10">
               <input type="text" name="lastname" value="<?php echo $lastname; ?>" placeholder="<?php echo $entry_lastname; ?>" id="input-lastname" class="form-control" />
@@ -60,16 +71,8 @@
               <?php } ?>
             </div>
           </div>
-          <div class="form-group required">
-            <label class="col-sm-2 control-label" for="input-email"><?php echo $entry_email; ?></label>
-            <div class="col-sm-10">
-              <input type="email" name="email" value="<?php echo $email; ?>" placeholder="<?php echo $entry_email; ?>" id="input-email" class="form-control" />
-              <?php if ($error_email) { ?>
-              <div class="text-danger"><?php echo $error_email; ?></div>
-              <?php } ?>
-            </div>
-          </div>
-          <div class="form-group required">
+          <?php /*>
+          <!--<div class="form-group required">
             <label class="col-sm-2 control-label" for="input-telephone"><?php echo $entry_telephone; ?></label>
             <div class="col-sm-10">
               <input type="tel" name="telephone" value="<?php echo $telephone; ?>" placeholder="<?php echo $entry_telephone; ?>" id="input-telephone" class="form-control" />
@@ -459,7 +462,8 @@
           </div>
           <?php } ?>
           <?php } ?>
-          <?php } ?>
+          <?php } ?>-->
+          <*/?>
         </fieldset>
         <fieldset>
           <legend><?php echo $text_your_password; ?></legend>
@@ -487,7 +491,15 @@
           <div class="form-group">
             <label class="col-sm-2 control-label"><?php echo $entry_newsletter; ?></label>
             <div class="col-sm-10">
-              <?php if ($newsletter) { ?>
+                <label class="radio-inline">
+                    <input type="radio" name="newsletter" value="1" checked="checked" />
+                    <?php echo $text_yes; ?></label>
+                <label class="radio-inline">
+                    <input type="radio" name="newsletter" value="0" />
+                    <?php echo $text_no; ?></label>
+
+                <?php /* >
+              <!--<?php if ($newsletter) { ?>
               <label class="radio-inline">
                 <input type="radio" name="newsletter" value="1" checked="checked" />
                 <?php echo $text_yes; ?></label>
@@ -501,7 +513,8 @@
               <label class="radio-inline">
                 <input type="radio" name="newsletter" value="0" checked="checked" />
                 <?php echo $text_no; ?></label>
-              <?php } ?>
+              <?php } ?>-->
+                <*/?>
             </div>
           </div>
         </fieldset>
@@ -584,8 +597,6 @@ $('input[name=\'customer_group_id\']').on('change', function() {
 					$('#custom-field' + custom_field['custom_field_id']).addClass('required');
 				}
 			}
-
-
 		},
 		error: function(xhr, ajaxOptions, thrownError) {
 			alert(thrownError + "\r\n" + xhr.statusText + "\r\n" + xhr.responseText);
@@ -637,7 +648,7 @@ $('button[id^=\'button-custom-field\']').on('click', function() {
 					if (json['success']) {
 						alert(json['success']);
 
-						$(node).parent().find('input').val(json['code']);
+						$(node).parent().find('input').attr('value', json['code']);
 					}
 				},
 				error: function(xhr, ajaxOptions, thrownError) {
@@ -662,10 +673,28 @@ $('.datetime').datetimepicker({
 	pickTime: true
 });
 //--></script>
-<script type="text/javascript"><!--
-$('select[name=\'country_id\']').on('change', function() {
+<script type="text/javascript">
+$('#input-email').on('focusout',function () {
+    $.post('index.php?route=account/register/validate_email',{ "email" : $('#input-email').val()},function(result){
+        // <div class="text-danger"><?php echo $error_email; ?></div>
+        //if(result) {
+        //    $('#input-email').after('<div class="text-danger">' + result + '</div>');
+        //}
+        if(!$('#input-email').next('div').hasClass('text-danger')) {
+            if(result) {
+                $('#input-email').next('div').addClass('text-danger');
+            }
+            else{
+                $('#input-email').next('div').removeClass('text-danger');
+            }
+
+            $('#input-email').next('div').html(result);
+        }
+    });
+});
+/*$('select[name=\'country_id\']').on('change', function() {
 	$.ajax({
-		url: 'index.php?route=localisation/country&country_id=' + this.value,
+		url: 'index.php?route=account/account/country&country_id=' + this.value,
 		dataType: 'json',
 		beforeSend: function() {
 			$('select[name=\'country_id\']').after(' <i class="fa fa-circle-o-notch fa-spin"></i>');
@@ -704,6 +733,6 @@ $('select[name=\'country_id\']').on('change', function() {
 	});
 });
 
-$('select[name=\'country_id\']').trigger('change');
+$('select[name=\'country_id\']').trigger('change');*/
 //--></script>
 <?php echo $footer; ?>

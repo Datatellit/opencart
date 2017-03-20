@@ -20,6 +20,26 @@ class ControllerAccountRegister extends Controller {
 		if (($this->request->server['REQUEST_METHOD'] == 'POST') && $this->validate()) {
 			$customer_id = $this->model_account_customer->addCustomer($this->request->post);
 
+
+			/*
+             *  Sycn the account from ec to bbs
+             * now, temporary call it directly ,
+             * furturn ,change to MQ
+			 *  add by terry 20160828 start
+             * */
+			if(SYNC_ACCOUNT=="1")
+			{
+				if($customer_id) {
+					$this->syncAccountEC2BBS(HTTP_SYNC_API,
+						$this->request->post['firstname'],
+						$this->request->post['lastname'],
+						$this->request->post['email'],
+						$this->request->post['password']
+					);
+				}
+			}
+			//add by terry 20160828 end
+
 			// Clear any previous login attempts for unregistered accounts.
 			$this->model_account_customer->deleteLoginAttempts($this->request->post['email']);
 
@@ -28,16 +48,14 @@ class ControllerAccountRegister extends Controller {
 			unset($this->session->data['guest']);
 
 			// Add to activity log
-			if ($this->config->get('config_customer_activity')) {
-				$this->load->model('account/activity');
+			$this->load->model('account/activity');
 
-				$activity_data = array(
-					'customer_id' => $customer_id,
-					'name'        => $this->request->post['firstname'] . ' ' . $this->request->post['lastname']
-				);
+			$activity_data = array(
+				'customer_id' => $customer_id,
+				'name'        => $this->request->post['firstname'] . ' ' . $this->request->post['lastname']
+			);
 
-				$this->model_account_activity->addActivity('register', $activity_data);
-			}
+			$this->model_account_activity->addActivity('register', $activity_data);
 
 			$this->response->redirect($this->url->link('account/success'));
 		}
@@ -75,8 +93,7 @@ class ControllerAccountRegister extends Controller {
 		$data['entry_customer_group'] = $this->language->get('entry_customer_group');
 		$data['entry_firstname'] = $this->language->get('entry_firstname');
 		$data['entry_lastname'] = $this->language->get('entry_lastname');
-		$data['entry_email'] = $this->language->get('entry_email');
-		$data['entry_telephone'] = $this->language->get('entry_telephone');
+		/*$data['entry_telephone'] = $this->language->get('entry_telephone');
 		$data['entry_fax'] = $this->language->get('entry_fax');
 		$data['entry_company'] = $this->language->get('entry_company');
 		$data['entry_address_1'] = $this->language->get('entry_address_1');
@@ -84,8 +101,10 @@ class ControllerAccountRegister extends Controller {
 		$data['entry_postcode'] = $this->language->get('entry_postcode');
 		$data['entry_city'] = $this->language->get('entry_city');
 		$data['entry_country'] = $this->language->get('entry_country');
-		$data['entry_zone'] = $this->language->get('entry_zone');
+		$data['entry_zone'] = $this->language->get('entry_zone');*/
 		$data['entry_newsletter'] = $this->language->get('entry_newsletter');
+
+		$data['entry_email'] = $this->language->get('entry_email');
 		$data['entry_password'] = $this->language->get('entry_password');
 		$data['entry_confirm'] = $this->language->get('entry_confirm');
 
@@ -110,13 +129,7 @@ class ControllerAccountRegister extends Controller {
 			$data['error_lastname'] = '';
 		}
 
-		if (isset($this->error['email'])) {
-			$data['error_email'] = $this->error['email'];
-		} else {
-			$data['error_email'] = '';
-		}
-
-		if (isset($this->error['telephone'])) {
+		/*if (isset($this->error['telephone'])) {
 			$data['error_telephone'] = $this->error['telephone'];
 		} else {
 			$data['error_telephone'] = '';
@@ -156,6 +169,12 @@ class ControllerAccountRegister extends Controller {
 			$data['error_custom_field'] = $this->error['custom_field'];
 		} else {
 			$data['error_custom_field'] = array();
+		}*/
+
+		if (isset($this->error['email'])) {
+			$data['error_email'] = $this->error['email'];
+		} else {
+			$data['error_email'] = '';
 		}
 
 		if (isset($this->error['password'])) {
@@ -210,13 +229,13 @@ class ControllerAccountRegister extends Controller {
 			$data['email'] = '';
 		}
 
-		if (isset($this->request->post['telephone'])) {
+		/*if (isset($this->request->post['telephone'])) {
 			$data['telephone'] = $this->request->post['telephone'];
 		} else {
 			$data['telephone'] = '';
-		}
+		}*/
 
-		if (isset($this->request->post['fax'])) {
+		/*if (isset($this->request->post['fax'])) {
 			$data['fax'] = $this->request->post['fax'];
 		} else {
 			$data['fax'] = '';
@@ -268,18 +287,18 @@ class ControllerAccountRegister extends Controller {
 			$data['zone_id'] = $this->session->data['shipping_address']['zone_id'];
 		} else {
 			$data['zone_id'] = '';
-		}
+		}*/
 
-		$this->load->model('localisation/country');
+		/*$this->load->model('localisation/country');
 
-		$data['countries'] = $this->model_localisation_country->getCountries();
+		$data['countries'] = $this->model_localisation_country->getCountries();*/
 
 		// Custom Fields
 		$this->load->model('account/custom_field');
 
 		$data['custom_fields'] = $this->model_account_custom_field->getCustomFields();
 
-		if (isset($this->request->post['custom_field'])) {
+		/*if (isset($this->request->post['custom_field'])) {
 			if (isset($this->request->post['custom_field']['account'])) {
 				$account_custom_field = $this->request->post['custom_field']['account'];
 			} else {
@@ -295,7 +314,7 @@ class ControllerAccountRegister extends Controller {
 			$data['register_custom_field'] = $account_custom_field + $address_custom_field;
 		} else {
 			$data['register_custom_field'] = array();
-		}
+		}*/
 
 		if (isset($this->request->post['password'])) {
 			$data['password'] = $this->request->post['password'];
@@ -317,7 +336,7 @@ class ControllerAccountRegister extends Controller {
 
 		// Captcha
 		if ($this->config->get($this->config->get('config_captcha') . '_status') && in_array('register', (array)$this->config->get('config_captcha_page'))) {
-			$data['captcha'] = $this->load->controller('extension/captcha/' . $this->config->get('config_captcha'), $this->error);
+			$data['captcha'] = $this->load->controller('captcha/' . $this->config->get('config_captcha'), $this->error);
 		} else {
 			$data['captcha'] = '';
 		}
@@ -352,14 +371,35 @@ class ControllerAccountRegister extends Controller {
 		$this->response->setOutput($this->load->view('account/register', $data));
 	}
 
+	// 验证邮箱
+	public function validate_email()
+	{
+		$this->load->language('account/register');
+		$this->load->model('account/customer');
+
+		//$data['error_msg'] = '';
+
+		if ((utf8_strlen($this->request->post['email']) > 96) || !filter_var($this->request->post['email'], FILTER_VALIDATE_EMAIL)) {
+			$this->error['email'] = $this->language->get('error_email');
+
+			print_r($this->error['email']);
+		}
+
+		if ($this->model_account_customer->getTotalCustomersByEmail($this->request->post['email'])) {
+			$this->error['warning'] = $this->language->get('error_exists');
+
+			print_r($this->error['warning']);
+		}
+	}
+
 	private function validate() {
-		if ((utf8_strlen(trim($this->request->post['firstname'])) < 1) || (utf8_strlen(trim($this->request->post['firstname'])) > 32)) {
+		/*if ((utf8_strlen(trim($this->request->post['firstname'])) < 1) || (utf8_strlen(trim($this->request->post['firstname'])) > 32)) {
 			$this->error['firstname'] = $this->language->get('error_firstname');
 		}
 
 		if ((utf8_strlen(trim($this->request->post['lastname'])) < 1) || (utf8_strlen(trim($this->request->post['lastname'])) > 32)) {
 			$this->error['lastname'] = $this->language->get('error_lastname');
-		}
+		}*/
 
 		if ((utf8_strlen($this->request->post['email']) > 96) || !filter_var($this->request->post['email'], FILTER_VALIDATE_EMAIL)) {
 			$this->error['email'] = $this->language->get('error_email');
@@ -369,7 +409,7 @@ class ControllerAccountRegister extends Controller {
 			$this->error['warning'] = $this->language->get('error_exists');
 		}
 
-		if ((utf8_strlen($this->request->post['telephone']) < 3) || (utf8_strlen($this->request->post['telephone']) > 32)) {
+		/*if ((utf8_strlen($this->request->post['telephone']) < 3) || (utf8_strlen($this->request->post['telephone']) > 32)) {
 			$this->error['telephone'] = $this->language->get('error_telephone');
 		}
 
@@ -412,12 +452,12 @@ class ControllerAccountRegister extends Controller {
 		foreach ($custom_fields as $custom_field) {
             if ($custom_field['required'] && empty($this->request->post['custom_field'][$custom_field['location']][$custom_field['custom_field_id']])) {
 				$this->error['custom_field'][$custom_field['custom_field_id']] = sprintf($this->language->get('error_custom_field'), $custom_field['name']);
-			} elseif (($custom_field['type'] == 'text') && !empty($custom_field['validation']) && !filter_var($this->request->post['custom_field'][$custom_field['location']][$custom_field['custom_field_id']], FILTER_VALIDATE_REGEXP, array('options' => array('regexp' => $custom_field['validation'])))) {
-            	$this->error['custom_field'][$custom_field['custom_field_id']] = sprintf($this->language->get('error_custom_field'), $custom_field['name']);
+			} elseif (($custom_field['type'] == 'text' && !empty($custom_field['validation'])) && !filter_var($this->request->post['custom_field'][$custom_field['location']][$custom_field['custom_field_id']], FILTER_VALIDATE_REGEXP, array('options' => array('regexp' => $custom_field['validation'])))) {
+            	$this->error['custom_field'][$custom_field['custom_field_id']] = sprintf($this->language->get('error_custom_field_validate'), $custom_field['name']);
             }
-		}
+		}*/
 
-		if ((utf8_strlen(html_entity_decode($this->request->post['password'], ENT_QUOTES, "UTF-8")) < 4) || (utf8_strlen(html_entity_decode($this->request->post['password'], ENT_QUOTES, "UTF-8")) > 20)) {
+		if ((utf8_strlen($this->request->post['password']) < 4) || (utf8_strlen($this->request->post['password']) > 20)) {
 			$this->error['password'] = $this->language->get('error_password');
 		}
 
@@ -427,7 +467,7 @@ class ControllerAccountRegister extends Controller {
 
 		// Captcha
 		if ($this->config->get($this->config->get('config_captcha') . '_status') && in_array('register', (array)$this->config->get('config_captcha_page'))) {
-			$captcha = $this->load->controller('extension/captcha/' . $this->config->get('config_captcha') . '/validate');
+			$captcha = $this->load->controller('captcha/' . $this->config->get('config_captcha') . '/validate');
 
 			if ($captcha) {
 				$this->error['captcha'] = $captcha;
@@ -471,5 +511,44 @@ class ControllerAccountRegister extends Controller {
 
 		$this->response->addHeader('Content-Type: application/json');
 		$this->response->setOutput(json_encode($json));
+	}
+
+	//send the post via aync
+	function curl_post_async($url, $params)
+	{
+		/*
+                foreach ($params as $key => &$val) {
+                    if (is_array($val)) $val = implode(',', $val);
+                    $post_params[] = $key.'='.urlencode($val);
+                }
+                $post_string = implode('/', $post_params);
+                */
+		$post_string ="";
+		$parts=parse_url($url);
+
+		$fp = fsockopen($parts['host'],
+			isset($parts['port'])?$parts['port']:80,
+			$errno, $errstr, 30);
+
+		$out = "POST ".$parts['path']." HTTP/1.1\r\n";
+		$out.= "Host: ".$parts['host']."\r\n";
+		$out.= "Content-Type: application/x-www-form-urlencoded\r\n";
+		$out.= "Content-Length: ".strlen($post_string)."\r\n";
+		$out.= "Connection: Close\r\n\r\n";
+		if (isset($post_string)) $out.= $post_string;
+
+		fwrite($fp, $out);
+		fclose($fp);
+	}
+
+	//Account from ec tobbs
+	function  syncAccountEC2BBS($url,$firstname,$lastname,$email,$password)
+	{
+		$urlFormat = $url."/".$email."/".$firstname."/"."$lastname"."/".$password;
+		$log = new Log('syncAccount.log');
+		$log->write("customer callsyncAccountEC2BBS.. ");
+		$log->write($urlFormat);
+		//sample http://x.ca:10002/bbs/customer/b2@qq.com/f2/l2/123456
+		$this->curl_post_async($urlFormat);
 	}
 }

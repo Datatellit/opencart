@@ -13,7 +13,7 @@ class ControllerAccountForgotten extends Controller {
 
 		$this->load->model('account/customer');
 
-		if (($this->request->server['REQUEST_METHOD'] == 'POST') && $this->validate()) {
+		if ($this->request->server['REQUEST_METHOD'] == 'POST' && $this->validate()) {
 			$this->load->language('mail/forgotten');
 
 			$code = token(40);
@@ -46,19 +46,17 @@ class ControllerAccountForgotten extends Controller {
 			$this->session->data['success'] = $this->language->get('text_success');
 
 			// Add to activity log
-			if ($this->config->get('config_customer_activity')) {
-				$customer_info = $this->model_account_customer->getCustomerByEmail($this->request->post['email']);
+			$customer_info = $this->model_account_customer->getCustomerByEmail($this->request->post['email']);
 
-				if ($customer_info) {
-					$this->load->model('account/activity');
+			if ($customer_info) {
+				$this->load->model('account/activity');
 
-					$activity_data = array(
-						'customer_id' => $customer_info['customer_id'],
-						'name'        => $customer_info['firstname'] . ' ' . $customer_info['lastname']
-					);
+				$activity_data = array(
+					'customer_id' => $customer_info['customer_id'],
+					'name'        => $customer_info['firstname'] . ' ' . $customer_info['lastname']
+				);
 
-					$this->model_account_activity->addActivity('forgotten', $activity_data);
-				}
+				$this->model_account_activity->addActivity('forgotten', $activity_data);
 			}
 
 			$this->response->redirect($this->url->link('account/login', '', true));
@@ -120,7 +118,10 @@ class ControllerAccountForgotten extends Controller {
 	protected function validate() {
 		if (!isset($this->request->post['email'])) {
 			$this->error['warning'] = $this->language->get('error_email');
-		} elseif (!$this->model_account_customer->getTotalCustomersByEmail($this->request->post['email'])) {
+		} else if(empty($this->request->post['email'])) {
+			$this->error['warning'] = $this->language->get('error_email');
+		}
+		elseif (!$this->model_account_customer->getTotalCustomersByEmail($this->request->post['email'])) {
 			$this->error['warning'] = $this->language->get('error_email');
 		}
 

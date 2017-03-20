@@ -19,6 +19,10 @@ class ControllerCheckoutShippingAddress extends Controller {
 		$data['entry_country'] = $this->language->get('entry_country');
 		$data['entry_zone'] = $this->language->get('entry_zone');
 
+		// shipping times
+		$data['text_shipping_time_title'] = $this->language->get('text_shipping_time_title');
+		$data['text_shipping_time_content'] = $this->language->get('text_shipping_time_content');
+
 		$data['button_continue'] = $this->language->get('button_continue');
 		$data['button_upload'] = $this->language->get('button_upload');
 
@@ -75,11 +79,6 @@ class ControllerCheckoutShippingAddress extends Controller {
 
 		// Validate if customer is logged in.
 		if (!$this->customer->isLogged()) {
-			$json['redirect'] = $this->url->link('checkout/checkout', '', true);
-		}
-
-		// Validate if shipping is required. If not the customer should not have reached this page.
-		if (!$this->cart->hasShipping()) {
 			$json['redirect'] = $this->url->link('checkout/checkout', '', true);
 		}
 
@@ -167,8 +166,8 @@ class ControllerCheckoutShippingAddress extends Controller {
 				foreach ($custom_fields as $custom_field) {
 					if (($custom_field['location'] == 'address') && $custom_field['required'] && empty($this->request->post['custom_field'][$custom_field['custom_field_id']])) {
 						$json['error']['custom_field' . $custom_field['custom_field_id']] = sprintf($this->language->get('error_custom_field'), $custom_field['name']);
-					} elseif (($custom_field['location'] == 'address') && ($custom_field['type'] == 'text') && !empty($custom_field['validation']) && !filter_var($this->request->post['custom_field'][$custom_field['custom_field_id']], FILTER_VALIDATE_REGEXP, array('options' => array('regexp' => $custom_field['validation'])))) {
-                        $json['error']['custom_field' . $custom_field['custom_field_id']] = sprintf($this->language->get('error_custom_field'), $custom_field['name']);
+					} elseif (($custom_field['type'] == 'text' && !empty($custom_field['validation']) && $custom_field['location'] == 'address') && !filter_var($this->request->post['custom_field'][$custom_field['custom_field_id']], FILTER_VALIDATE_REGEXP, array('options' => array('regexp' => $custom_field['validation'])))) {
+                        $json['error']['custom_field' . $custom_field['custom_field_id']] = sprintf($this->language->get('error_custom_field_validate'), $custom_field['name']);
                     }
 				}
 
@@ -183,18 +182,31 @@ class ControllerCheckoutShippingAddress extends Controller {
 					unset($this->session->data['shipping_method']);
 					unset($this->session->data['shipping_methods']);
 
-					if ($this->config->get('config_customer_activity')) {
-						$this->load->model('account/activity');
+					$this->load->model('account/activity');
 
-						$activity_data = array(
-							'customer_id' => $this->customer->getId(),
-							'name'        => $this->customer->getFirstName() . ' ' . $this->customer->getLastName()
-						);
+					$activity_data = array(
+						'customer_id' => $this->customer->getId(),
+						'name'        => $this->customer->getFirstName() . ' ' . $this->customer->getLastName()
+					);
 
-						$this->model_account_activity->addActivity('address_add', $activity_data);
-					}
+					$this->model_account_activity->addActivity('address_add', $activity_data);
 				}
 			}
+		}
+
+		$this->response->addHeader('Content-Type: application/json');
+		$this->response->setOutput(json_encode($json));
+	}
+
+	public function iskw() {
+		if(isset($this->request->post['addressId'])) {
+			$address_id = $this->request->post['addressId'];
+			$this->db->query("UPDATE " . DB_PREFIX . "customer SET address_id = '" . (int)$address_id . "' WHERE customer_id = '" . (int)$this->customer->getId() . "'");
+			$isCouponActive = strtolower($this->session->data['coupon']) == "kwfree2016" && $this->customer->isKW();
+
+			$json['success'] = $isCouponActive;
+		} else {
+			$json['success'] = true;
 		}
 
 		$this->response->addHeader('Content-Type: application/json');

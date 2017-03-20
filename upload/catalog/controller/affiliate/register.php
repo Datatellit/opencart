@@ -23,16 +23,14 @@ class ControllerAffiliateRegister extends Controller {
 			$this->affiliate->login($this->request->post['email'], $this->request->post['password']);
 
 			// Add to activity log
-			if ($this->config->get('config_customer_activity')) {
-				$this->load->model('affiliate/activity');
+			$this->load->model('affiliate/activity');
 
-				$activity_data = array(
-					'affiliate_id' => $affiliate_id,
-					'name'         => $this->request->post['firstname'] . ' ' . $this->request->post['lastname']
-				);
+			$activity_data = array(
+				'affiliate_id' => $affiliate_id,
+				'name'         => $this->request->post['firstname'] . ' ' . $this->request->post['lastname']
+			);
 
-				$this->model_affiliate_activity->addActivity('register', $activity_data);
-			}
+			$this->model_affiliate_activity->addActivity('register', $activity_data);
 
 			$this->response->redirect($this->url->link('affiliate/success'));
 		}
@@ -319,7 +317,7 @@ class ControllerAffiliateRegister extends Controller {
 
 		// Captcha
 		if ($this->config->get($this->config->get('config_captcha') . '_status') && in_array('register', (array)$this->config->get('config_captcha_page'))) {
-			$data['captcha'] = $this->load->controller('extension/captcha/' . $this->config->get('config_captcha'), $this->error);
+			$data['captcha'] = $this->load->controller('captcha/' . $this->config->get('config_captcha'), $this->error);
 		} else {
 			$data['captcha'] = '';
 		}
@@ -399,7 +397,7 @@ class ControllerAffiliateRegister extends Controller {
 			$this->error['zone'] = $this->language->get('error_zone');
 		}
 
-		if ((utf8_strlen(html_entity_decode($this->request->post['password'], ENT_QUOTES, "UTF-8")) < 4) || (utf8_strlen(html_entity_decode($this->request->post['password'], ENT_QUOTES, "UTF-8")) > 20)) {
+		if ((utf8_strlen($this->request->post['password']) < 4) || (utf8_strlen($this->request->post['password']) > 20)) {
 			$this->error['password'] = $this->language->get('error_password');
 		}
 
@@ -409,7 +407,7 @@ class ControllerAffiliateRegister extends Controller {
 
 		// Captcha
 		if ($this->config->get($this->config->get('config_captcha') . '_status') && in_array('register', (array)$this->config->get('config_captcha_page'))) {
-			$captcha = $this->load->controller('extension/captcha/' . $this->config->get('config_captcha') . '/validate');
+			$captcha = $this->load->controller('captcha/' . $this->config->get('config_captcha') . '/validate');
 
 			if ($captcha) {
 				$this->error['captcha'] = $captcha;

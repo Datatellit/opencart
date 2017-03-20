@@ -3,7 +3,19 @@ class ControllerAccountLogin extends Controller {
 	private $error = array();
 
 	public function index() {
-		$this->load->model('account/customer');
+
+		if( isset($_SERVER['HTTP_REFERER'])) {
+			if(
+				strpos($_SERVER['HTTP_REFERER'],"product/product")
+				|| strpos($_SERVER['HTTP_REFERER'],"checkout/cart")
+				|| strpos($_SERVER['HTTP_REFERER'],"checkout/checkout")
+			)
+			{
+				$this->session->data['login_redirect'] = $_SERVER['HTTP_REFERER'];
+			}
+		}
+
+			$this->load->model('account/customer');
 
 		// Login override for admin users
 		if (!empty($this->request->get['token'])) {
@@ -50,6 +62,11 @@ class ControllerAccountLogin extends Controller {
 		$this->document->setTitle($this->language->get('heading_title'));
 
 		if (($this->request->server['REQUEST_METHOD'] == 'POST') && $this->validate()) {
+
+			if( SSO === "1") {
+				setcookie('emailec',$this->customer->getEmail(), strtotime('+30 days'), '/', DOMAIN);
+				setcookie('tokenec',md5($this->customer->getEmail() . SECRET),strtotime('+30 days'), '/', DOMAIN);
+			}
 			// Unset guest
 			unset($this->session->data['guest']);
 
@@ -76,22 +93,25 @@ class ControllerAccountLogin extends Controller {
 			}
 
 			// Add to activity log
-			if ($this->config->get('config_customer_activity')) {
-				$this->load->model('account/activity');
+			$this->load->model('account/activity');
 
-				$activity_data = array(
-					'customer_id' => $this->customer->getId(),
-					'name'        => $this->customer->getFirstName() . ' ' . $this->customer->getLastName()
-				);
+			$activity_data = array(
+				'customer_id' => $this->customer->getId(),
+				'name'        => $this->customer->getFirstName() . ' ' . $this->customer->getLastName()
+			);
 
-				$this->model_account_activity->addActivity('login', $activity_data);
-			}
+			$this->model_account_activity->addActivity('login', $activity_data);
 
 			// Added strpos check to pass McAfee PCI compliance test (http://forum.opencart.com/viewtopic.php?f=10&t=12043&p=151494#p151295)
-			if (isset($this->request->post['redirect']) && $this->request->post['redirect'] != $this->url->link('account/logout', '', true) && (strpos($this->request->post['redirect'], $this->config->get('config_url')) !== false || strpos($this->request->post['redirect'], $this->config->get('config_ssl')) !== false)) {
+			if(!empty($this->session->data['login_redirect'])) {
+				$url = $this->session->data['login_redirect'];
+				unset($this->session->data['login_redirect']);
+				$this->response->redirect($url);
+			}
+			else if (isset($this->request->post['redirect']) && (strpos($this->request->post['redirect'], $this->config->get('config_url')) !== false || strpos($this->request->post['redirect'], $this->config->get('config_ssl')) !== false)) {
 				$this->response->redirect(str_replace('&amp;', '&', $this->request->post['redirect']));
 			} else {
-				$this->response->redirect($this->url->link('account/account', '', true));
+				$this->response->redirect($this->url->link('common/home', '', true));
 			}
 		}
 
@@ -178,6 +198,8 @@ class ControllerAccountLogin extends Controller {
 		$data['content_bottom'] = $this->load->controller('common/content_bottom');
 		$data['footer'] = $this->load->controller('common/footer');
 		$data['header'] = $this->load->controller('common/header');
+
+		require_once DIR_APPLICATION . 'controller/account/social_setting.php';
 
 		$this->response->setOutput($this->load->view('account/login', $data));
 	}

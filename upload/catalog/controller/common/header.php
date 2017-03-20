@@ -10,7 +10,7 @@ class ControllerCommonHeader extends Controller {
 
 		foreach ($analytics as $analytic) {
 			if ($this->config->get($analytic['code'] . '_status')) {
-				$data['analytics'][] = $this->load->controller('extension/analytics/' . $analytic['code'], $this->config->get($analytic['code'] . '_status'));
+				$data['analytics'][] = $this->load->controller('analytics/' . $analytic['code'], $this->config->get($analytic['code'] . '_status'));
 			}
 		}
 
@@ -52,8 +52,30 @@ class ControllerCommonHeader extends Controller {
 			$this->load->model('account/wishlist');
 
 			$data['text_wishlist'] = sprintf($this->language->get('text_wishlist'), $this->model_account_wishlist->getTotalWishlist());
+			//add by terry 20160802 start
+			$data['logindesc'] = 'My Account';
+
+			if (!empty($this->customer->getFirstName())&& !empty($this->customer->getLastName()))
+			{
+				$data['logindesc'] =$this->customer->getFirstName()." ".$this->customer->getLastName();
+			}
+			elseif (!empty($this->customer->getFirstName()))
+			{
+				$data['logindesc'] =$this->customer->getFirstName();
+			}
+			elseif (!empty($this->customer->getLastName()))
+			{
+				$data['logindesc'] =$this->customer->getLastName();
+			}
+			elseif (!empty($this->customer->getEmail()))
+			{
+				$data['logindesc'] =$this->customer->getEmail();
+			}
+			//add by terry 20160802 end
+
 		} else {
 			$data['text_wishlist'] = sprintf($this->language->get('text_wishlist'), (isset($this->session->data['wishlist']) ? count($this->session->data['wishlist']) : 0));
+			$data['logindesc'] = 'Guest';
 		}
 
 		$data['text_shopping_cart'] = $this->language->get('text_shopping_cart');
@@ -73,7 +95,10 @@ class ControllerCommonHeader extends Controller {
 		$data['home'] = $this->url->link('common/home');
 		$data['wishlist'] = $this->url->link('account/wishlist', '', true);
 		$data['logged'] = $this->customer->isLogged();
-		$data['account'] = $this->url->link('account/account', '', true);
+
+		// change the account/account to account/edit 2016.09.12 start
+		$data['account'] = $this->url->link('account/edit', '', true);
+		// change the account/account to account/edit 2016.09.12 end
 		$data['register'] = $this->url->link('account/register', '', true);
 		$data['login'] = $this->url->link('account/login', '', true);
 		$data['order'] = $this->url->link('account/order', '', true);
@@ -127,7 +152,6 @@ class ControllerCommonHeader extends Controller {
 		$data['currency'] = $this->load->controller('common/currency');
 		$data['search'] = $this->load->controller('common/search');
 		$data['cart'] = $this->load->controller('common/cart');
-
 		// For page specific css
 		if (isset($this->request->get['route'])) {
 			if (isset($this->request->get['product_id'])) {

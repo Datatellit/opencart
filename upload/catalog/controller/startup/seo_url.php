@@ -62,6 +62,10 @@ class ControllerStartupSeoUrl extends Controller {
 					$this->request->get['route'] = 'information/information';
 				}
 			}
+
+			if (isset($this->request->get['route'])) {
+				return new Action($this->request->get['route']);
+			}
 		}
 	}
 

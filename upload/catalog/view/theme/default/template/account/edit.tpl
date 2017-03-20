@@ -63,6 +63,26 @@
               <input type="text" name="fax" value="<?php echo $fax; ?>" placeholder="<?php echo $entry_fax; ?>" id="input-fax" class="form-control" />
             </div>
           </div>
+          <div class="form-group">
+            <label class="col-sm-2 control-label"><?php echo $entry_newsletter; ?></label>
+            <div class="col-sm-10">
+              <?php if ($newsletter) { ?>
+              <label class="radio-inline">
+                <input type="radio" name="newsletter" value="1" checked="checked" />
+                <?php echo $text_yes; ?></label>
+              <label class="radio-inline">
+                <input type="radio" name="newsletter" value="0" />
+                <?php echo $text_no; ?></label>
+              <?php } else { ?>
+              <label class="radio-inline">
+                <input type="radio" name="newsletter" value="1" />
+                <?php echo $text_yes; ?></label>
+              <label class="radio-inline">
+                <input type="radio" name="newsletter" value="0" checked="checked" />
+                <?php echo $text_no; ?></label>
+              <?php } ?>
+            </div>
+          </div>
           <?php foreach ($custom_fields as $custom_field) { ?>
           <?php if ($custom_field['location'] == 'account') { ?>
           <?php if ($custom_field['type'] == 'select') { ?>
@@ -218,7 +238,13 @@
           <?php } ?>
         </fieldset>
         <div class="buttons clearfix">
+         <!-- remove the back button 2016.09.12 start -->
+          <?php /*>
+          <!--
           <div class="pull-left"><a href="<?php echo $back; ?>" class="btn btn-default"><?php echo $button_back; ?></a></div>
+          -->
+          <*/ ?>
+          <!-- remove the back button 2016.09.12 end -->
           <div class="pull-right">
             <input type="submit" value="<?php echo $button_continue; ?>" class="btn btn-primary" />
           </div>
@@ -289,7 +315,7 @@ $('button[id^=\'button-custom-field\']').on('click', function() {
 					if (json['success']) {
 						alert(json['success']);
 
-						$(node).parent().find('input').val(json['code']);
+						$(node).parent().find('input').attr('value', json['code']);
 					}
 				},
 				error: function(xhr, ajaxOptions, thrownError) {
