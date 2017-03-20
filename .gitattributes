@@ -1,5 +1,7 @@
 # Auto detect text files and perform LF normalization
-* text=auto
+# download from zip unix
+# dev on window os
+# * text=auto
 
 # Ignore specific directories / files when using export
 /tests export-ignore
